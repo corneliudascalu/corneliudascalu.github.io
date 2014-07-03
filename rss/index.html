@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[Corneliu Dascălu]]></title><description><![CDATA[[Inspiring quote goes here]]]></description><link>http://corneliudascalu.github.io/</link><generator>Ghost v0.4.2</generator><lastBuildDate>Thu, 03 Jul 2014 20:27:42 GMT</lastBuildDate><atom:link href="http://corneliudascalu.github.io/rss/" rel="self" type="application/rss+xml"/><ttl>60</ttl><item><title><![CDATA[Ghost + Buster = Awesome]]></title><description><![CDATA[<p>I've been eyeing <a href='http://corneliudascalu.github.io/www.ghost.org' >Ghost</a> for some time. I've also found <a href='https://github.com/axitkhurana/buster' >Buster</a>, a tool that generates static pages from a running instance of Ghost.</p>
+
+<p>Today, I finally found the time and motivation to install everything and give it a try. Lo and behold, 10 minutes later I am the proud owner of a Ghost blog hosted on Github Pages.</p>
+
+<p>Technology is awesome!</p>]]></description><link>http://corneliudascalu.github.io/ghost-buster-awesome/</link><guid isPermaLink="false">dc796047-cea0-40fe-9c00-fec880ff4b3d</guid><dc:creator><![CDATA[Corneliu Dascălu]]></dc:creator><pubDate>Mon, 23 Jun 2014 17:46:39 GMT</pubDate></item><item><title><![CDATA[Android Paged TextView - an Idea]]></title><description><![CDATA[<p>A while ago, playing around in Feedly, I wondered how difficult would have been to have an implementation where you can swipe to get to the next page, like you would do in an ebook application. Or, like you do in Google Currents, only it’s woefully inadequate as an RSS reader.</p>
+
+<p>At first, I’ve tried to find an RSS reader that does this, but couldn’t find one. A friend challenged me to do it myself and well, why not? It should be pretty simple, right?</p>
+
+<p>Apparently not. Predictably, I first headed for Stackoverflow. A few searches didn’t turn up much. The only thing close to a solution was a half-baked algorithm that added characters one by one to a text view until it was full. I didn’t even try to test it, but it must have been really slow.</p>
+
+<p>Looking through the source code of two open source ebook reader apps, FBReader and CoolReader, I found complex, custom implementations of a text renderer, using native code. FBReader uses zlibrary, a library that allows cross-platform compilation (that’s all I could find about it) and the code is way too complex. CoolReader is also cross platform, and uses native code and crengine, their rendering engine for XML, CSS and stuff.</p>
+
+<p>Out of ideas, I ventured into the source code of TextView, assuming that I could find something in the code used to set the maximum line number. The thing is that TextView works backwards from what I needed. Given a chunk of text, it figures out how big the TextView must be to fit it. If the sizes are fixed, then it just displays what can be displayed. All this happens using the android.text.Layout subclasses: BoringLayout, StaticLayout and DynamicLayout.</p>
+
+<p>All I wanted was a simple and clean way to do what I wanted. I headed for Reddit and Google+. I got some answers on Reddit, suggesting either a native implementation, or a more hackish use of StaticLayout.</p>
+
+<p>As I was already starting to think about how to use StaticLayout, I stumbled upon another open source ebook reader: PageTurner. A quick look through it’s source code (I was at work), gave me hope. There was a BookView, extending a ScrollView, and somewhere inside it was a TextView.</p>
+
+<p>I couldn’t wait to get home to dig into it. Indeed, it was doing the exact thing I wanted to do: using a StaticLayout to calculate how much text can fit into a given TextView. The method used is brutal: take all the text and dump it in the TextView, then go line by line to see where the visible text starts and ends. But it worked, because it was only doing this once, and storing all the page start positions in the text.</p>
+
+<p>The code is interwoven with the code for the actual book, and I’d like to build a simple and clean PagedTextView that can be used without having to know what happens inside.</p>]]></description><link>http://corneliudascalu.github.io/android-paged-textview-an-idea/</link><guid isPermaLink="false">a5cd4d8c-ff63-406e-b89a-3b48136e6920</guid><dc:creator><![CDATA[Corneliu Dascălu]]></dc:creator><pubDate>Sat, 01 Mar 2014 10:00:00 GMT</pubDate></item></channel></rss>
