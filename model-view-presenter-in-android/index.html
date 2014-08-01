@@ -1,21 +1,73 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[Corneliu Dascălu]]></title><description><![CDATA[[Inspiring quote goes here]]]></description><link>http://corneliudascalu.github.io/</link><generator>Ghost v0.4.2</generator><lastBuildDate>Fri, 01 Aug 2014 09:58:02 GMT</lastBuildDate><atom:link href="http://corneliudascalu.github.io/rss/" rel="self" type="application/rss+xml"/><ttl>60</ttl><item><title><![CDATA[Model-View-Presenter in Android]]></title><description><![CDATA[<h2 id="intro">Intro</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-<p>A while ago I stumbled upon <a href='http://antonioleiva.com/mvp-android/' >this article</a> by Antonio Leiva about implementing the MVP architecture in Android. I've always wanted to organize my code better, and MVP sounded like a good idea.</p>
+    
+    <title>Model-View-Presenter in Android</title>
+    <meta name="description" content="" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="shortcut icon" href="../favicon.ico">
+
+    
+    <link rel="stylesheet" type="text/css" href="../assets/css/screen.css?v=c22708af94" />
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Noto+Serif:400,700,400italic|Open+Sans:700,400" />
+
+    
+    <meta name="generator" content="Ghost 0.4" />
+<link rel="alternate" type="application/rss+xml" title="Corneliu Dascălu" href="../rss/index.html">
+<link rel="canonical" href="http://corneliudascalu.github.io/model-view-presenter-in-android/" />
+</head>
+<body class="post-template">
+
+    
+    
+
+
+
+<main class="content" role="main">
+
+    <article class="post">
+
+        
+        <header class="post-header">
+            <a class="blog-logo" href="http://corneliudascalu.github.io">
+                
+                    <img src="../content/images/2014/Jul/portrait_small-1.png" alt="Blog Logo" />
+                
+            </a>
+        </header>
+
+        
+        
+
+            <span class="post-meta"><time datetime="2014-07-25">25 Jul 2014</time> </span>
+
+            <h1 class="post-title">Model-View-Presenter in Android</h1>
+
+            <section class="post-content">
+                <h2 id="intro">Intro</h2>
+
+<p>A while ago I stumbled upon <a href="http://antonioleiva.com/mvp-android/">this article</a> by Antonio Leiva about implementing the MVP architecture in Android. I've always wanted to organize my code better, and MVP sounded like a good idea.</p>
 
 <p>I theory, Android is all about MVC, with the <code>Activity</code> or <code>Fragment</code> being the controller and the view defined in XML layouts. In practice, you end up with a lot of view logic in the Activity. The MVP approach promises to solve this by assuming that the <code>Activity</code> or <code>Fragment</code> is the view, controlled by a Presenter.</p>
 
-<p>I'm only going to comment on the article and add my experiences, so you should first read the article I mentioned above and <a href='http://antonioleiva.com/dependency-injection-android-dagger-part-1/' >the</a> <a href='http://antonioleiva.com/dagger-android-part-2/' >followup</a> <a href='http://antonioleiva.com/dagger-3/' >articles</a> on dependency injection using Dagger.</p>
+<p>I'm only going to comment on the article and add my experiences, so you should first read the article I mentioned above and <a href="http://antonioleiva.com/dependency-injection-android-dagger-part-1/">the</a> <a href="http://antonioleiva.com/dagger-android-part-2/">followup</a> <a href="http://antonioleiva.com/dagger-3/">articles</a> on dependency injection using Dagger.</p>
 
-<p>Alright! First off, the sample code is too simple, and there are probably some places where you wondered: "What if I wanted to do <em>this</em> or <em>that</em>?". I know I did. So I wanted to do something a little closer to a real app, and also integrate a testing framework (<a href='https://code.google.com/p/android-test-kit/wiki/Espresso' >Espresso</a>).</p>
+<p>Alright! First off, the sample code is too simple, and there are probably some places where you wondered: "What if I wanted to do <em>this</em> or <em>that</em>?". I know I did. So I wanted to do something a little closer to a real app, and also integrate a testing framework (<a href="https://code.google.com/p/android-test-kit/wiki/Espresso">Espresso</a>).</p>
 
-<p>My sample app is a very simple note-taking app, MVPNotes. The app allows the user to write and save a note, display the existing notes in a list, delete a note or view note details. The code can be found <a href='https://github.com/corneliudascalu/mvp-notes' >on Github</a>, if you want to check it out straight away.</p>
+<p>My sample app is a very simple note-taking app, MVPNotes. The app allows the user to write and save a note, display the existing notes in a list, delete a note or view note details. The code can be found <a href="https://github.com/corneliudascalu/mvp-notes">on Github</a>, if you want to check it out straight away.</p>
 
 <h2 id="setup">Setup</h2>
 
 <p>Before diving into the actual implementation, let me tell you a few things about setting up the project. I'm using Android Studio and Gradle. If you are using Ant or another build system, you should be able to translate the instructions, because I'm not using anything too fancy.</p>
 
-<p>So, here is the <a href='https://github.com/corneliudascalu/mvp-notes/blob/master/app/build.gradle' >build.gradle</a> file. (BTW, I recommend Octotree, a very useful extension for navigating Github repos, available for <a href='https://chrome.google.com/webstore/detail/octotree/bkhaagjahfmjljalopjnoealnfndnagc' >Chrome</a> and <a href='https://addons.mozilla.org/en-US/firefox/addon/octotree/' >Firefox</a>). The first important thing in the build script is the <code>testInstrumentationRunner</code> bit. That sets <a href='https://code.google.com/p/android-test-kit/wiki/Espresso' >Espresso</a> for testing. Note that I'm actually using <a href='https://github.com/JakeWharton/double-espresso' >Double Espresso</a>, which is Jake Wharton's port of Espresso to Gradle. You can see it included in the list of dependencies at <code>androidTestCompile</code>. You should also notice the included Dagger dependencies. To avoid a conflict between the Dagger dependency and the already included Dagger in Double Espresso, I'm excluding it from the test configuration:  </p>
+<p>So, here is the <a href="https://github.com/corneliudascalu/mvp-notes/blob/master/app/build.gradle">build.gradle</a> file. (BTW, I recommend Octotree, a very useful extension for navigating Github repos, available for <a href="https://chrome.google.com/webstore/detail/octotree/bkhaagjahfmjljalopjnoealnfndnagc">Chrome</a> and <a href="https://addons.mozilla.org/en-US/firefox/addon/octotree/">Firefox</a>). The first important thing in the build script is the <code>testInstrumentationRunner</code> bit. That sets <a href="https://code.google.com/p/android-test-kit/wiki/Espresso">Espresso</a> for testing. Note that I'm actually using <a href="https://github.com/JakeWharton/double-espresso">Double Espresso</a>, which is Jake Wharton's port of Espresso to Gradle. You can see it included in the list of dependencies at <code>androidTestCompile</code>. You should also notice the included Dagger dependencies. To avoid a conflict between the Dagger dependency and the already included Dagger in Double Espresso, I'm excluding it from the test configuration:  </p>
 
 <blockquote>
   <p><code>exclude group: 'com.squareup.dagger'</code></p>
@@ -23,11 +75,11 @@
 
 <p>Depending on your code, you may encounter other conflicts, listed by Jake Wharton in the readme file of Double Espresso.</p>
 
-<p>One more note, Espresso fails on Android L Preview, as noted <a href='https://groups.google.com/forum/' #!topic/android-test-kit-discuss/ydINYazybnI">here</a>.</p>
+<p>One more note, Espresso fails on Android L Preview, as noted <a href="https://groups.google.com/forum/#!topic/android-test-kit-discuss/ydINYazybnI">here</a>.</p>
 
 <h4 id="settingupdagger">Setting up Dagger</h4>
 
-<p>I've used a slightly tweaked way of setting up the Object Graph than what you saw on Antonio Leiva's blog. You can check it on Fabio Collini's Github repo, <a href='https://github.com/fabioCollini/TestableAndroidApps' >TestableAndroidApps</a>. The <code>ObjectGraphHolder</code> is a class used to store and get a reference to the application object graph, but also to force another object graph (useful when testing).</p>
+<p>I've used a slightly tweaked way of setting up the Object Graph than what you saw on Antonio Leiva's blog. You can check it on Fabio Collini's Github repo, <a href="https://github.com/fabioCollini/TestableAndroidApps">TestableAndroidApps</a>. The <code>ObjectGraphHolder</code> is a class used to store and get a reference to the application object graph, but also to force another object graph (useful when testing).</p>
 
 <p>However, I've kept the approach suggested by Antonio of having a base <code>Activity</code> with an abstract <code>getModules()</code> method, in order to create a scoped object graph.</p>
 
@@ -166,24 +218,59 @@ dataReady(){
 
 <p>My personal conclusion is that I need to experiment more. It's still not clear to me how this approach would scale in a large application.</p>
 
-<p>But would I use it? Yes. It's better than jamming all the code in the Activity or Fragment.</p>]]></description><link>http://corneliudascalu.github.io/model-view-presenter-in-android/</link><guid isPermaLink="false">009b8162-0f5b-409b-ac9a-7e85e00337fe</guid><dc:creator><![CDATA[Corneliu Dascălu]]></dc:creator><pubDate>Fri, 25 Jul 2014 17:05:00 GMT</pubDate></item><item><title><![CDATA[Ghost + Buster = Awesome]]></title><description><![CDATA[<p>I've been eyeing <a href='http://corneliudascalu.github.io/www.ghost.org' >Ghost</a> for some time. I've also found <a href='https://github.com/axitkhurana/buster' >Buster</a>, a tool that generates static pages from a running instance of Ghost.</p>
+<p>But would I use it? Yes. It's better than jamming all the code in the Activity or Fragment.</p>
+            </section>
 
-<p>Today, I finally found the time and motivation to install everything and give it a try. Lo and behold, 10 minutes later I am the proud owner of a Ghost blog hosted on Github Pages.</p>
+            <footer class="post-footer">
 
-<p>Technology is awesome!</p>]]></description><link>http://corneliudascalu.github.io/ghost-buster-awesome/</link><guid isPermaLink="false">dc796047-cea0-40fe-9c00-fec880ff4b3d</guid><dc:creator><![CDATA[Corneliu Dascălu]]></dc:creator><pubDate>Mon, 23 Jun 2014 17:46:39 GMT</pubDate></item><item><title><![CDATA[Android Paged TextView - an Idea]]></title><description><![CDATA[<p>A while ago, playing around in Feedly, I wondered how difficult would have been to have an implementation where you can swipe to get to the next page, like you would do in an ebook application. Or, like you do in Google Currents, only it’s woefully inadequate as an RSS reader.</p>
+                <section class="author">
+                    <h4>Corneliu Dascălu</h4>
+                    <p>I&#x27;m an Android developer, former Flash/Flex developer. I&#x27;m always trying to improve myself, and this is part of the process.</p>
+                    <ul class="author-meta clearfix">
+                        <li>Suceava, Romania</li>
+                        
+                    </ul>
+                </section>
 
-<p>At first, I’ve tried to find an RSS reader that does this, but couldn’t find one. A friend challenged me to do it myself and well, why not? It should be pretty simple, right?</p>
+                <section class="share">
+                    <h4>Share this post</h4>
+                    <a class="icon-twitter" href="https://twitter.com/share?text=Model-View-Presenter%20in%20Android&amp;url=http://corneliudascalu.github.io/model-view-presenter-in-android/"
+                        onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                        <span class="hidden">Twitter</span>
+                    </a>
+                    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://corneliudascalu.github.io/model-view-presenter-in-android/"
+                        onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                        <span class="hidden">Facebook</span>
+                    </a>
+                    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://corneliudascalu.github.io/model-view-presenter-in-android/"
+                       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                        <span class="hidden">Google+</span>
+                    </a>
+                </section>
 
-<p>Apparently not. Predictably, I first headed for Stackoverflow. A few searches didn’t turn up much. The only thing close to a solution was a half-baked algorithm that added characters one by one to a text view until it was full. I didn’t even try to test it, but it must have been really slow.</p>
+            </footer>
 
-<p>Looking through the source code of two open source ebook reader apps, FBReader and CoolReader, I found complex, custom implementations of a text renderer, using native code. FBReader uses zlibrary, a library that allows cross-platform compilation (that’s all I could find about it) and the code is way too complex. CoolReader is also cross platform, and uses native code and crengine, their rendering engine for XML, CSS and stuff.</p>
+        
 
-<p>Out of ideas, I ventured into the source code of TextView, assuming that I could find something in the code used to set the maximum line number. The thing is that TextView works backwards from what I needed. Given a chunk of text, it figures out how big the TextView must be to fit it. If the sizes are fixed, then it just displays what can be displayed. All this happens using the android.text.Layout subclasses: BoringLayout, StaticLayout and DynamicLayout.</p>
+    </article>
 
-<p>All I wanted was a simple and clean way to do what I wanted. I headed for Reddit and Google+. I got some answers on Reddit, suggesting either a native implementation, or a more hackish use of StaticLayout.</p>
+</main>
 
-<p>As I was already starting to think about how to use StaticLayout, I stumbled upon another open source ebook reader: PageTurner. A quick look through it’s source code (I was at work), gave me hope. There was a BookView, extending a ScrollView, and somewhere inside it was a TextView.</p>
 
-<p>I couldn’t wait to get home to dig into it. Indeed, it was doing the exact thing I wanted to do: using a StaticLayout to calculate how much text can fit into a given TextView. The method used is brutal: take all the text and dump it in the TextView, then go line by line to see where the visible text starts and ends. But it worked, because it was only doing this once, and storing all the page start positions in the text.</p>
+    <footer class="site-footer">
+        <a class="subscribe icon-feed" href="http://corneliudascalu.github.io/rss/"><span class="tooltip">Subscribe!</span></a>
+        <div class="inner">
+             <section class="copyright">All content copyright <a href="http://corneliudascalu.github.io/">Corneliu Dascălu</a> &copy; 2014 &bull; All rights reserved.</section>
+             <section class="poweredby">Proudly published with <a class="icon-ghost" href="https://ghost.org">Ghost</a></section>
+        </div>
+    </footer>
 
-<p>The code is interwoven with the code for the actual book, and I’d like to build a simple and clean PagedTextView that can be used without having to know what happens inside.</p>]]></description><link>http://corneliudascalu.github.io/android-paged-textview-an-idea/</link><guid isPermaLink="false">a5cd4d8c-ff63-406e-b89a-3b48136e6920</guid><dc:creator><![CDATA[Corneliu Dascălu]]></dc:creator><pubDate>Sat, 01 Mar 2014 10:00:00 GMT</pubDate></item></channel></rss>
+    
+    <script src="../public/jquery.js?v=c22708af94"></script>
+
+    
+    <script type="text/javascript" src="../assets/js/jquery.fitvids.js?v=c22708af94"></script>
+    <script type="text/javascript" src="../assets/js/index.js?v=c22708af94"></script>
+
+</body>
+</html>

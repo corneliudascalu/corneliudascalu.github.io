@@ -105,7 +105,7 @@ table { border-collapse: collapse; border-spacing: 0; }
 /* Import the font file with the icons in it */
 @font-face {
     font-family: 'icons';
-    src:url('http://127.0.0.1:2368/assets/fonts/icons.eot');
+    src:url('http://localhost:2368/assets/fonts/icons.eot');
     src:url('../fonts/icons.eot') format('embedded-opentype'),
         url('../fonts/icons.woff') format('woff'),
         url('../fonts/icons.ttf') format('truetype'),
