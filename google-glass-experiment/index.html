@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     
-    <title>Ghost + Buster = Awesome</title>
+    <title>Google Glass experiment</title>
     <meta name="description" content="" />
 
     <meta name="HandheldFriendly" content="True" />
@@ -21,7 +21,7 @@
     
     <meta name="generator" content="Ghost 0.4" />
 <link rel="alternate" type="application/rss+xml" title="Corneliu Dascălu" href="../rss/index.html">
-<link rel="canonical" href="http://corneliudascalu.github.io/ghost-buster-awesome/" />
+<link rel="canonical" href="http://corneliudascalu.github.io/google-glass-experiment/" />
 </head>
 <body class="post-template">
 
@@ -46,16 +46,24 @@
         
         
 
-            <span class="post-meta"><time datetime="2014-06-23">23 Jun 2014</time> </span>
+            <span class="post-meta"><time datetime="2014-09-10">10 Sep 2014</time> </span>
 
-            <h1 class="post-title">Ghost + Buster = Awesome</h1>
+            <h1 class="post-title">Google Glass experiment</h1>
 
             <section class="post-content">
-                <p>I've been eyeing <a href="www.ghost.org">Ghost</a> for some time. I've also found <a href="https://github.com/axitkhurana/buster">Buster</a>, a tool that generates static pages from a running instance of Ghost.</p>
+                <p>I've recently completed a small experimental project using Google Glass. The project intends to let the user scan a QR code which contains an encoded URL and send it to a phone.</p>
 
-<p>Today, I finally found the time and motivation to install everything and give it a try. Lo and behold, 10 minutes later I am the proud owner of a Ghost blog hosted on Github Pages.</p>
+<p>Initially, the communication was supposed to be done using Bluetooth, which would make a lot of sense, considering that the Glass is usually always paired with a phone. I ran into trouble after I finished the Android app and everything was running fine, when I found out that iOS doesn't allow normal Bluetooth communication, only Bluetooth Low Energy. </p>
 
-<p>Technology is awesome!</p>
+<p>After trying to find a way to use BLE to accomplish the same thing, we abandoned the Bluetooth approach entirely. In order for BLE to work, Glass should have acted as a BLE peripheral, waiting for the phone to read the URL. However, Glass runs Android which, currently (4.4 Kitkat) doesn't support peripheral mode, only central.</p>
+
+<p>So we decided to implement an old fashioned push-notifications way of delivering the scanned URL to the target device. And that was that, nothing fancy, nothing to report.</p>
+
+<p>I want to say that I love developing for the Glass. It runs pure, unadulterated Android, with the GDK on top. You can basically compile any Android app and run it on Glass. Obviously, you couldn't do much with it.</p>
+
+<p>On the other hand, I don't see much use for the Glass (yet). Most of the things it does can be accomplished with a minimum of effort on a phone, and at a much lower price tag.</p>
+
+<p>I will update this post with the code when it's ready, and maybe find the time to go through the most interesting parts in another post.</p>
             </section>
 
             <footer class="post-footer">
@@ -71,22 +79,22 @@
 
                 <section class="share">
                     <h4>Share this post</h4>
-                    <a class="icon-twitter" href="https://twitter.com/share?text=Ghost%20%2B%20Buster%20%3D%20Awesome&amp;url=http://corneliudascalu.github.io/ghost-buster-awesome/"
+                    <a class="icon-twitter" href="https://twitter.com/share?text=Google%20Glass%20experiment&amp;url=http://corneliudascalu.github.io/google-glass-experiment/"
                         onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
                         <span class="hidden">Twitter</span>
                     </a>
-                    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://corneliudascalu.github.io/ghost-buster-awesome/"
+                    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://corneliudascalu.github.io/google-glass-experiment/"
                         onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
                         <span class="hidden">Facebook</span>
                     </a>
-                    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://corneliudascalu.github.io/ghost-buster-awesome/"
+                    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://corneliudascalu.github.io/google-glass-experiment/"
                        onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
                         <span class="hidden">Google+</span>
                     </a>
                 </section>
 
         		<section class="comment">
-        	    	<div class="g-comments" data-href="http://corneliudascalu.github.io/ghost-buster-awesome/" data-first_party_property="BLOGGER" data-view_type="FILTERED_POSTMOD">Loading Google+ Comments ...</div>
+        	    	<div class="g-comments" data-href="http://corneliudascalu.github.io/google-glass-experiment/" data-first_party_property="BLOGGER" data-view_type="FILTERED_POSTMOD">Loading Google+ Comments ...</div>
         	    	<script async type="text/javascript" src="http://apis.google.com/js/plusone.js?callback=gpcb"></script>
             		<noscript>Please enable JavaScript to view the <a href="https://plus.google.com/">comments powered by Google+.</a></noscript>
         		</section>
