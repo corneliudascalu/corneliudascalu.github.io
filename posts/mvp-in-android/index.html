@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Model-View-Presenter in Android - Corneliu&#39;s</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/favicon.png">
+
+  
+  
+  <link rel="stylesheet" href="/css/style.min.4b2bfb3701049fe0da3e8d6b9d15186ba1dc7e294f0be3e2bca21bb8a330f5dd.css">
+  
+
+  
+    <meta name="description" content="Experiment with the MVP architecture paradigm using Dagger for dependency injection"/>
+    <meta property="og:title" content="Model-View-Presenter in Android"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="/posts/mvp-in-android/"/>
+    
+    <meta property="og:description" content="Experiment with the MVP architecture paradigm using Dagger for dependency injection"/>
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:site" content="@corneliudev"/>
+    <meta name="twitter:creator" content="@corneliudev"/>
+  
+
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet"> 
+</head>
+
+
+
+
+<body class='page page-blog-single'>
+  <div id="wrapper" class="wrapper">
+    <div class='header'>
+  <a class="header-logo" href="/">Corneliu&#39;s</a>
+  <div class="menu-main">
+    <ul>
+        
+        
+            <li class="menu-item-about">
+                <a href="/pages/about/">About</a>
+            </li>
+        
+            <li class="menu-item-posts">
+                <a href="/posts/">Posts</a>
+            </li>
+        
+    </ul>
+  </div>
+</div>
+    
+  <div class="blog">
+    
+    <div class="intro">
+      <h1>Model-View-Presenter in Android</h1>
+      
+    </div>
+    <div class="content">
+      <h2 id="intro">Intro</h2>
+<p>A while ago I stumbled upon this article by Antonio Leiva about implementing the MVP architecture in Android. I’ve always wanted to organize my code better, and MVP sounded like a good idea.
+I theory, Android is all about MVC, with the Activity or Fragment being the controller and the view defined in XML layouts. In practice, you end up with a lot of view logic in the Activity. The MVP approach promises to solve this by assuming that the Activity or Fragment is the view, controlled by a Presenter.
+I’m only going to comment on the article and add my experiences, so you should first read the article I mentioned above and the followup articles on dependency injection using Dagger.
+Alright! First off, the sample code is too simple, and there are probably some places where you wondered: “What if I wanted to do this or that?”. I know I did. So I wanted to do something a little closer to a real app, and also integrate a testing framework (Espresso).
+My sample app is a very simple note-taking app, MVPNotes. The app allows the user to write and save a note, display the existing notes in a list, delete a note or view note details. The code can be found on Github, if you want to check it out straight away.</p>
+<h2 id="setup">Setup</h2>
+<p>Before diving into the actual implementation, let me tell you a few things about setting up the project. I’m using Android Studio and Gradle. If you are using Ant or another build system, you should be able to translate the instructions, because I’m not using anything too fancy.
+So, here is the build.gradle file. (BTW, I recommend Octotree, a very useful extension for navigating Github repos, available for Chrome and Firefox). The first important thing in the build script is the testInstrumentationRunner bit. That sets Espresso for testing. Note that I’m actually using Double Espresso, which is Jake Wharton’s port of Espresso to Gradle. You can see it included in the list of dependencies at androidTestCompile. You should also notice the included Dagger dependencies. To avoid a conflict between the Dagger dependency and the already included Dagger in Double Espresso, I’m excluding it from the test configuration:
+exclude group: &lsquo;com.squareup.dagger&rsquo;
+Depending on your code, you may encounter other conflicts, listed by Jake Wharton in the readme file of Double Espresso.
+One more note, Espresso fails on Android L Preview, as noted here.</p>
+<h3 id="setting-up-dagger">Setting up Dagger</h3>
+<p>I’ve used a slightly tweaked way of setting up the Object Graph than what you saw on Antonio Leiva’s blog. You can check it on Fabio Collini’s Github repo, TestableAndroidApps. The ObjectGraphHolder is a class used to store and get a reference to the application object graph, but also to force another object graph (useful when testing).
+However, I’ve kept the approach suggested by Antonio of having a base Activity with an abstract getModules() method, in order to create a scoped object graph.
+OK, I think I’ve covered all the important stuff, let’s get to the actual code.</p>
+<h2 id="main-logic">Main Logic</h2>
+<p>First, let’s define the model.</p>
+<pre><code>public class Note { 
+	public long id; 
+	public String title; 
+	public String text; 
+	public DateTime createdDate; 
+}
+</code></pre>
+<p>Let’s define the view that will display the list of notes and let the user write a new note. I’m trying to keep the code size to a minimum, so I’m not defining a deleteAll() method, for example. The public-facing interface of the view will let another part of the code to add a list of notes, remove a certain note from the view, or signal to the view to display a certain error.</p>
+<pre><code>public interface NotesView { 
+	void addNotes (Note... note); 
+	void removeNote (Note note); 
+	void setNoteError (String error); 
+}
+</code></pre>
+<p>That another part of the code will be the NotesPresenter. It exposes methods for someone to request the existing notes from the database, to submit a new note or delete a note from the database.</p>
+<pre><code>public interface NotesPresenter { 
+	void requestNotes(); 
+	void submitNewNote (String title, String text); 
+	void deleteNote (Note note); 
+}
+</code></pre>
+<p>The NoteInteractor will handle the interaction between the presenter and the database.</p>
+<pre><code>public interface NoteInteractor { 
+	void storeNote (Note note, OnNoteOperationListener listener);
+	void deleteNote (Note note, OnNoteOperationListener listener); 
+	void getNote (long id, OnNoteOperationListener listener); 
+	void getAllNotes (OnNoteOperationListener listener); 
+}
+</code></pre>
+<h2 id="implementation">Implementation</h2>
+<h3 id="notesactivity">NotesActivity</h3>
+<p>Let’s discuss the code of the NotesActivity. I won’t go through it step by step, I’ll only mention the interesting parts.
+So, first of all, notice the fact that the NotesPresenter is injected by Dagger. Of course, you probably saw that NotesActivity extends BaseInjectedActivity and overrides the getModules() method to add the NotesModule to the object graph.
+Let’s take a look at the onCreate() method. Check out the ArrayAdapter used to display the notes in the notesList ListView. You may argue that at least the ArrayList of notes, if not the adapter too, belong in the model and not the view. You could probably do it that way too, but I consider the adapter and the corresponding list of notes to be strictly View properties. They are owned and touched only by the NotesView and no one else.
+Next, take a look at the last line of the onCreate() method.
+notesPresenter.requestNotes();
+Now that is controversial. The view is basically controlling the presenter. It’s something that is not covered by Antonio Leiva, and I couldn’t find a better solution. An alternative would be to have an equivalent onCreate() method in the presenter, called from the activity’s onCreate(). The presenter would know that it’s time to start loading notes from the database and set them on the view.
+However, that would create a tighter coupling between view and presenter. If I wanted to implement NotesView Beyond simple implementation
+in a Fragment, I would have to think twice about the fragment lifecycle. Depending on the actual code in the presenter, it may not work with a fragment. But what if I wanted to use a plain old View? It would definitely not work without changing the presenter’s code. And that is bad. We want to keep the view and presenter oblivious of their internal implementations, otherwise the whole point of using MVP is lost.
+So, I think allowing the view to signal to the presenter that it has finished initializing and is ready to receive notes is a good compromise. We are forced to do this by Android, because the Activity is created before the presenter. If we used a Fragment or View, we could call requestNotes() from a parent Activity and keep the NotesPresenter isolated from the NotesView.
+Anyway, we can look at the requestNotes() call as just another event, like submitNewNote() and deleteNote().
+The rest of the activity code is self-explanatory. I’ll get into the NoteDetailsDialogFragment later.</p>
+<h3 id="simplenotespresenter">SimpleNotesPresenter</h3>
+<p>There’s not much to say about the presenter code. The interaction with the view and with the interactor is very simple.
+Just one remark: for clarity, I’m using the OnNoteOperationListener to get the results from the NoteInteractor. In a real app, you should use something more sophisticated, like an event bus.</p>
+<h3 id="noteinteractorimpl">NoteInteractorImpl</h3>
+<p>The interactor is quite simple. Besides actually comunicating with the database, it simulates longer operation times, and generates random errors. It gets injected with a SimpleDatabase instance from the DatabaseModule.</p>
+<h3 id="simpledatabase">SimpleDatabase</h3>
+<p>The database is far from a real database. It’s just storing key-value pairs in a SharedPreferences instance. As you can see, it doesn’t even have an update() method, so it doesn’t even have a full set of CRUD operations.</p>
+<h2 id="beyond-simple-implementation">Beyond simple implementation</h2>
+<p>If you got this far, you probably have a pretty good idea about MVP and Dagger. Let’s see what happens if we want to do something a little more complex. We’ll display some note details in a DialogFragment when the user selects a note.
+Check the NoteDetailsView and NoteDetailsPresenter.</p>
+<pre><code>public interface NoteDetailsPresenter { 
+	void setData(Note note); void viewReady(); 
+	void deleteNote(); 
+} 
+public interface NoteDetailsView { You will notice the setData(Note) and viewReady() methods in the presenter. The setData() method initializes the presenter with a Note. If we want to keep everything the Android way, the presenter will be created inside the dialog, so setData() will have to be called from the dialog (we could set the presenter on the dialog after it’s created and before it’s displayed, but that is quite fishy). It looks pretty bad, and I couldn’t find a better way to do it.
+</code></pre>
+<p>As an alternative, we could let the presenter itself get the note from the dialog. Something like:</p>
+<pre><code>	void setNote(Note note); 
+	void close(); 
+	void showError(String error); 
+}
+</code></pre>
+<p>You will notice the setData(Note) and viewReady() methods in the presenter. The setData() method initializes the presenter with a Note. If we want to keep everything the Android way, the presenter will be created inside the dialog, so setData() will have to be called from the dialog (we could set the presenter on the dialog after it’s created and before it’s displayed, but that is quite fishy). It looks pretty bad, and I couldn’t find a better way to do it.
+As an alternative, we could let the presenter itself get the note from the dialog. Something like:</p>
+<pre><code>NoteDetailsView 
+--- 
+onCreate() { 
+	... 
+	Note note = getArguments().getParcelable(&quot;note_extra&quot;); 
+	presenter.dataReady(); 
+	... 
+} 
+NoteDetailsPresenter 
+--- 
+dataReady(){ 
+    this.note = notesView.getNote(); 
+}
+</code></pre>
+<p>This removes the posibility of setting the data from outside the view-presenter couple. Also, it’s a litle more brittle than my approach. Where before we could set the data at any time (theoretically), now the data is set only in onCreate(). It doesn’t make any difference in our case, but it could, in a more complex implementation.
+Anyway, the point is that we have too much coupling between view and presenter. If anyone has a better solution, please let me know.
+(Of course, I’m well aware that there’s no need to keep the note in the presenter, in our case. I’m just trying to think of what I should do if I really needed to pass some data from the dialog to the presenter and keep it there).
+The rest of the logic is pretty simple. I should note that the code in onNoteDeleteError() could be better, but that’s beyond the scope of this app. You may notice that I’m using the same NoteInteractor to delete the note. Yay code reuse!</p>
+<h2 id="testing">Testing</h2>
+<p>The only thing I want to highlight for testing is the way I override the NoteInteractor implementation with MockNoteInteractor. First, I’m calling ObjectGraphHolder.forceObjectGraphCreator() in the setUp() method of the instrumentation test, setting a new object graph composed of the AppModule and MockNoteInteractorModule. Note that the AppModule already provides a NoteInteractor implementation, but the overrides = true annotation in the MockNoteInteractorModule takes care of that. Also, I could have used another AppModule if I wanted.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>My personal conclusion is that I need to experiment more. It’s still not clear to me how this approach would scale in a large application.
+But would I use it? Yes. It’s better than jamming all the code in the Activity or Fragment.</p>
+
+    </div>
+  </div>
+
+    <div class="footer">
+  
+  <div class="footer-social">
+    
+      <span class="social-icon social-icon-twitter">
+        <a href="https://twitter.com/corneliudev" title="twitter" target="_blank" rel="noopener">
+          <img src="/images/social/twitter.svg" width="24" height="24" alt="twitter"/>
+        </a>
+      </span>
+    
+      <span class="social-icon social-icon-github">
+        <a href="https://github.com/corneliudascalu" title="github" target="_blank" rel="noopener">
+          <img src="/images/social/github.svg" width="24" height="24" alt="github"/>
+        </a>
+      </span>
+    
+      <span class="social-icon social-icon-linkedin">
+        <a href="https://www.linkedin.com/in/corneliudascalu/" title="linkedin" target="_blank" rel="noopener">
+          <img src="/images/social/linkedin.svg" width="24" height="24" alt="linkedin"/>
+        </a>
+      </span>
+    
+  </div>
+  
+</div>
+  </div>
+
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/bundle.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.js"></script>
+  
+
+  
+  
+
+  
+  
+  
+    
+  
+
+
+</body>
+</html>
