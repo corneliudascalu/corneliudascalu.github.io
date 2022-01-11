@@ -1,7 +1,7 @@
 :root {
   --font-family-heading: 'Poppins', sans-serif;
-  --font-family-paragraph: Helvetica, sans-serif;
-  --font-family-mono: monospace;
+  --font-family-paragraph: 'Fira Sans', serif;
+  --font-family-monospace: 'JetBrains Mono', monospace;
   --base-color: #ffffff;
   --base-offset-color: #eaeaea;
   --highlight-color: #7b16ff;

@@ -10,7 +10,7 @@
 
   
   
-  <link rel="stylesheet" href="/css/style.min.4b2bfb3701049fe0da3e8d6b9d15186ba1dc7e294f0be3e2bca21bb8a330f5dd.css">
+  <link rel="stylesheet" href="/css/style.min.0842deec254cef0f2dca419793ecaeee930907976433005c1d39d406341e7991.css">
   
 
   
@@ -54,6 +54,13 @@
     
   <div class="blog">
     
+      <div class="author">
+  <img width="30" class="author-image" src="/images/portrait.jpeg" />
+  <span class="author-name">Corneliu Dascălu</span>
+  <span class="author-divider"></span>
+  <span class="author-date">November 24, 2015</span>
+</div>
+    
     <div class="intro">
       <h1>Model-View-Presenter in Android</h1>
       
@@ -67,9 +74,9 @@ Alright! First off, the sample code is too simple, and there are probably some p
 My sample app is a very simple note-taking app, MVPNotes. The app allows the user to write and save a note, display the existing notes in a list, delete a note or view note details. The code can be found on Github, if you want to check it out straight away.</p>
 <h2 id="setup">Setup</h2>
 <p>Before diving into the actual implementation, let me tell you a few things about setting up the project. I’m using Android Studio and Gradle. If you are using Ant or another build system, you should be able to translate the instructions, because I’m not using anything too fancy.
-So, here is the build.gradle file. (BTW, I recommend Octotree, a very useful extension for navigating Github repos, available for Chrome and Firefox). The first important thing in the build script is the testInstrumentationRunner bit. That sets Espresso for testing. Note that I’m actually using Double Espresso, which is Jake Wharton’s port of Espresso to Gradle. You can see it included in the list of dependencies at androidTestCompile. You should also notice the included Dagger dependencies. To avoid a conflict between the Dagger dependency and the already included Dagger in Double Espresso, I’m excluding it from the test configuration:
-exclude group: &lsquo;com.squareup.dagger&rsquo;
-Depending on your code, you may encounter other conflicts, listed by Jake Wharton in the readme file of Double Espresso.
+So, here is the build.gradle file. (BTW, I recommend Octotree, a very useful extension for navigating Github repos, available for Chrome and Firefox). The first important thing in the build script is the testInstrumentationRunner bit. That sets Espresso for testing. Note that I’m actually using Double Espresso, which is Jake Wharton’s port of Espresso to Gradle. You can see it included in the list of dependencies at androidTestCompile. You should also notice the included Dagger dependencies. To avoid a conflict between the Dagger dependency and the already included Dagger in Double Espresso, I’m excluding it from the test configuration:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">exclude group: &#39;com.squareup.dagger&#39;
+</code></pre></div><p>Depending on your code, you may encounter other conflicts, listed by Jake Wharton in the readme file of Double Espresso.
 One more note, Espresso fails on Android L Preview, as noted here.</p>
 <h3 id="setting-up-dagger">Setting up Dagger</h3>
 <p>I’ve used a slightly tweaked way of setting up the Object Graph than what you saw on Antonio Leiva’s blog. You can check it on Fabio Collini’s Github repo, TestableAndroidApps. The ObjectGraphHolder is a class used to store and get a reference to the application object graph, but also to force another object graph (useful when testing).
@@ -77,36 +84,32 @@ However, I’ve kept the approach suggested by Antonio of having a base Activity
 OK, I think I’ve covered all the important stuff, let’s get to the actual code.</p>
 <h2 id="main-logic">Main Logic</h2>
 <p>First, let’s define the model.</p>
-<pre><code>public class Note { 
-	public long id; 
-	public String title; 
-	public String text; 
-	public DateTime createdDate; 
-}
-</code></pre>
-<p>Let’s define the view that will display the list of notes and let the user write a new note. I’m trying to keep the code size to a minimum, so I’m not defining a deleteAll() method, for example. The public-facing interface of the view will let another part of the code to add a list of notes, remove a certain note from the view, or signal to the view to display a certain error.</p>
-<pre><code>public interface NotesView { 
-	void addNotes (Note... note); 
-	void removeNote (Note note); 
-	void setNoteError (String error); 
-}
-</code></pre>
-<p>That another part of the code will be the NotesPresenter. It exposes methods for someone to request the existing notes from the database, to submit a new note or delete a note from the database.</p>
-<pre><code>public interface NotesPresenter { 
-	void requestNotes(); 
-	void submitNewNote (String title, String text); 
-	void deleteNote (Note note); 
-}
-</code></pre>
-<p>The NoteInteractor will handle the interaction between the presenter and the database.</p>
-<pre><code>public interface NoteInteractor { 
-	void storeNote (Note note, OnNoteOperationListener listener);
-	void deleteNote (Note note, OnNoteOperationListener listener); 
-	void getNote (long id, OnNoteOperationListener listener); 
-	void getAllNotes (OnNoteOperationListener listener); 
-}
-</code></pre>
-<h2 id="implementation">Implementation</h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Note</span> <span class="o">{</span> 
+    <span class="kd">public</span> <span class="kt">long</span> <span class="n">id</span><span class="o">;</span> 
+    <span class="kd">public</span> <span class="n">String</span> <span class="n">title</span><span class="o">;</span> 
+    <span class="kd">public</span> <span class="n">String</span> <span class="n">text</span><span class="o">;</span> 
+    <span class="kd">public</span> <span class="n">DateTime</span> <span class="n">createdDate</span><span class="o">;</span> 
+<span class="o">}</span>
+</code></pre></div><p>Let’s define the view that will display the list of notes and let the user write a new note. I’m trying to keep the code size to a minimum, so I’m not defining a deleteAll() method, for example. The public-facing interface of the view will let another part of the code to add a list of notes, remove a certain note from the view, or signal to the view to display a certain error.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">NotesView</span> <span class="o">{</span> 
+    <span class="kt">void</span> <span class="nf">addNotes</span> <span class="o">(</span><span class="n">Note</span><span class="o">...</span> <span class="n">note</span><span class="o">);</span> 
+    <span class="kt">void</span> <span class="nf">removeNote</span> <span class="o">(</span><span class="n">Note</span> <span class="n">note</span><span class="o">);</span> 
+    <span class="kt">void</span> <span class="nf">setNoteError</span> <span class="o">(</span><span class="n">String</span> <span class="n">error</span><span class="o">);</span> 
+<span class="o">}</span>
+</code></pre></div><p>That another part of the code will be the NotesPresenter. It exposes methods for someone to request the existing notes from the database, to submit a new note or delete a note from the database.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">NotesPresenter</span> <span class="o">{</span> 
+    <span class="kt">void</span> <span class="nf">requestNotes</span><span class="o">();</span> 
+    <span class="kt">void</span> <span class="nf">submitNewNote</span> <span class="o">(</span><span class="n">String</span> <span class="n">title</span><span class="o">,</span> <span class="n">String</span> <span class="n">text</span><span class="o">);</span> 
+    <span class="kt">void</span> <span class="nf">deleteNote</span> <span class="o">(</span><span class="n">Note</span> <span class="n">note</span><span class="o">);</span> 
+<span class="o">}</span>
+</code></pre></div><p>The NoteInteractor will handle the interaction between the presenter and the database.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">NoteInteractor</span> <span class="o">{</span> 
+    <span class="kt">void</span> <span class="nf">storeNote</span> <span class="o">(</span><span class="n">Note</span> <span class="n">note</span><span class="o">,</span> <span class="n">OnNoteOperationListener</span> <span class="n">listener</span><span class="o">);</span>
+    <span class="kt">void</span> <span class="nf">deleteNote</span> <span class="o">(</span><span class="n">Note</span> <span class="n">note</span><span class="o">,</span> <span class="n">OnNoteOperationListener</span> <span class="n">listener</span><span class="o">);</span> 
+    <span class="kt">void</span> <span class="nf">getNote</span> <span class="o">(</span><span class="kt">long</span> <span class="n">id</span><span class="o">,</span> <span class="n">OnNoteOperationListener</span> <span class="n">listener</span><span class="o">);</span> 
+    <span class="kt">void</span> <span class="nf">getAllNotes</span> <span class="o">(</span><span class="n">OnNoteOperationListener</span> <span class="n">listener</span><span class="o">);</span> 
+<span class="o">}</span>
+</code></pre></div><h2 id="implementation">Implementation</h2>
 <h3 id="notesactivity">NotesActivity</h3>
 <p>Let’s discuss the code of the NotesActivity. I won’t go through it step by step, I’ll only mention the interesting parts.
 So, first of all, notice the fact that the NotesPresenter is injected by Dagger. Of course, you probably saw that NotesActivity extends BaseInjectedActivity and overrides the getModules() method to add the NotesModule to the object graph.
@@ -129,35 +132,32 @@ Just one remark: for clarity, I’m using the OnNoteOperationListener to get the
 <h2 id="beyond-simple-implementation">Beyond simple implementation</h2>
 <p>If you got this far, you probably have a pretty good idea about MVP and Dagger. Let’s see what happens if we want to do something a little more complex. We’ll display some note details in a DialogFragment when the user selects a note.
 Check the NoteDetailsView and NoteDetailsPresenter.</p>
-<pre><code>public interface NoteDetailsPresenter { 
-	void setData(Note note); void viewReady(); 
-	void deleteNote(); 
-} 
-public interface NoteDetailsView { You will notice the setData(Note) and viewReady() methods in the presenter. The setData() method initializes the presenter with a Note. If we want to keep everything the Android way, the presenter will be created inside the dialog, so setData() will have to be called from the dialog (we could set the presenter on the dialog after it’s created and before it’s displayed, but that is quite fishy). It looks pretty bad, and I couldn’t find a better way to do it.
-</code></pre>
-<p>As an alternative, we could let the presenter itself get the note from the dialog. Something like:</p>
-<pre><code>	void setNote(Note note); 
-	void close(); 
-	void showError(String error); 
-}
-</code></pre>
-<p>You will notice the setData(Note) and viewReady() methods in the presenter. The setData() method initializes the presenter with a Note. If we want to keep everything the Android way, the presenter will be created inside the dialog, so setData() will have to be called from the dialog (we could set the presenter on the dialog after it’s created and before it’s displayed, but that is quite fishy). It looks pretty bad, and I couldn’t find a better way to do it.
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">NoteDetailsPresenter</span> <span class="o">{</span> 
+    <span class="kt">void</span> <span class="nf">setData</span><span class="o">(</span><span class="n">Note</span> <span class="n">note</span><span class="o">);</span> <span class="kt">void</span> <span class="nf">viewReady</span><span class="o">();</span> 
+    <span class="kt">void</span> <span class="nf">deleteNote</span><span class="o">();</span> 
+<span class="o">}</span> 
+<span class="kd">public</span> <span class="kd">interface</span> <span class="nc">NoteDetailsView</span> <span class="o">{</span> <span class="n">You</span> <span class="n">will</span> <span class="n">notice</span> <span class="n">the</span> <span class="nf">setData</span><span class="o">(</span><span class="n">Note</span><span class="o">)</span> <span class="n">and</span> <span class="nf">viewReady</span><span class="o">()</span> <span class="n">methods</span> <span class="n">in</span> <span class="n">the</span> <span class="n">presenter</span><span class="o">.</span> <span class="n">The</span> <span class="nf">setData</span><span class="o">()</span> <span class="n">method</span> <span class="n">initializes</span> <span class="n">the</span> <span class="n">presenter</span> <span class="n">with</span> <span class="n">a</span> <span class="n">Note</span><span class="o">.</span> <span class="n">If</span> <span class="n">we</span> <span class="n">want</span> <span class="n">to</span> <span class="n">keep</span> <span class="n">everything</span> <span class="n">the</span> <span class="n">Android</span> <span class="n">way</span><span class="o">,</span> <span class="n">the</span> <span class="n">presenter</span> <span class="n">will</span> <span class="n">be</span> <span class="n">created</span> <span class="n">inside</span> <span class="n">the</span> <span class="n">dialog</span><span class="o">,</span> <span class="n">so</span> <span class="nf">setData</span><span class="o">()</span> <span class="n">will</span> <span class="n">have</span> <span class="n">to</span> <span class="n">be</span> <span class="n">called</span> <span class="n">from</span> <span class="n">the</span> <span class="nf">dialog</span> <span class="o">(</span><span class="n">we</span> <span class="n">could</span> <span class="n">set</span> <span class="n">the</span> <span class="n">presenter</span> <span class="n">on</span> <span class="n">the</span> <span class="n">dialog</span> <span class="n">after</span> <span class="n">it</span><span class="err">’</span><span class="n">s</span> <span class="n">created</span> <span class="n">and</span> <span class="n">before</span> <span class="n">it</span><span class="err">’</span><span class="n">s</span> <span class="n">displayed</span><span class="o">,</span> <span class="n">but</span> <span class="n">that</span> <span class="n">is</span> <span class="n">quite</span> <span class="n">fishy</span><span class="o">).</span> <span class="n">It</span> <span class="n">looks</span> <span class="n">pretty</span> <span class="n">bad</span><span class="o">,</span> <span class="n">and</span> <span class="n">I</span> <span class="n">couldn</span><span class="err">’</span><span class="n">t</span> <span class="n">find</span> <span class="n">a</span> <span class="n">better</span> <span class="n">way</span> <span class="n">to</span> <span class="k">do</span> <span class="n">it</span><span class="o">.</span>
+</code></pre></div><p>As an alternative, we could let the presenter itself get the note from the dialog. Something like:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java">    <span class="kt">void</span> <span class="nf">setNote</span><span class="o">(</span><span class="n">Note</span> <span class="n">note</span><span class="o">);</span> 
+    <span class="kt">void</span> <span class="nf">close</span><span class="o">();</span> 
+    <span class="kt">void</span> <span class="nf">showError</span><span class="o">(</span><span class="n">String</span> <span class="n">error</span><span class="o">);</span> 
+<span class="o">}</span>
+</code></pre></div><p>You will notice the setData(Note) and viewReady() methods in the presenter. The setData() method initializes the presenter with a Note. If we want to keep everything the Android way, the presenter will be created inside the dialog, so setData() will have to be called from the dialog (we could set the presenter on the dialog after it’s created and before it’s displayed, but that is quite fishy). It looks pretty bad, and I couldn’t find a better way to do it.
 As an alternative, we could let the presenter itself get the note from the dialog. Something like:</p>
-<pre><code>NoteDetailsView 
---- 
-onCreate() { 
-	... 
-	Note note = getArguments().getParcelable(&quot;note_extra&quot;); 
-	presenter.dataReady(); 
-	... 
-} 
-NoteDetailsPresenter 
---- 
-dataReady(){ 
-    this.note = notesView.getNote(); 
-}
-</code></pre>
-<p>This removes the posibility of setting the data from outside the view-presenter couple. Also, it’s a litle more brittle than my approach. Where before we could set the data at any time (theoretically), now the data is set only in onCreate(). It doesn’t make any difference in our case, but it could, in a more complex implementation.
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="n">NoteDetailsView</span> 
+<span class="o">---</span> 
+<span class="n">onCreate</span><span class="o">()</span> <span class="o">{</span> 
+    <span class="o">...</span> 
+    <span class="n">Note</span> <span class="n">note</span> <span class="o">=</span> <span class="n">getArguments</span><span class="o">().</span><span class="na">getParcelable</span><span class="o">(</span><span class="s">&#34;note_extra&#34;</span><span class="o">);</span> 
+    <span class="n">presenter</span><span class="o">.</span><span class="na">dataReady</span><span class="o">();</span> 
+    <span class="o">...</span> 
+<span class="o">}</span> 
+<span class="n">NoteDetailsPresenter</span> 
+<span class="o">---</span> 
+<span class="n">dataReady</span><span class="o">(){</span> 
+    <span class="k">this</span><span class="o">.</span><span class="na">note</span> <span class="o">=</span> <span class="n">notesView</span><span class="o">.</span><span class="na">getNote</span><span class="o">();</span> 
+<span class="o">}</span>
+</code></pre></div><p>This removes the posibility of setting the data from outside the view-presenter couple. Also, it’s a litle more brittle than my approach. Where before we could set the data at any time (theoretically), now the data is set only in onCreate(). It doesn’t make any difference in our case, but it could, in a more complex implementation.
 Anyway, the point is that we have too much coupling between view and presenter. If anyone has a better solution, please let me know.
 (Of course, I’m well aware that there’s no need to keep the note in the presenter, in our case. I’m just trying to think of what I should do if I really needed to pass some data from the dialog to the presenter and keep it there).
 The rest of the logic is pretty simple. I should note that the code in onNoteDeleteError() could be better, but that’s beyond the scope of this app. You may notice that I’m using the same NoteInteractor to delete the note. Yay code reuse!</p>
