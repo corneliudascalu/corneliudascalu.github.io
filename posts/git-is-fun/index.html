@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Git is fun - Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/favicon.png">
+
+  
+  
+  <link rel="stylesheet" href="/css/style.min.f7aa4083826a432bcf71ee94870208f8a06dafeb8e8927e66b4349d416541ba5.css">
+  
+
+  
+    <meta name="description" content="Many people are put off by Git because it seems difficult. For people transitioning from SVN, for example, the idea of local commits is often difficult to grasp. Using the command line tools is even more off-putting for people used to rich GUI tools. However, after getting past the initial learning curve, you start feeling the power of Git on the command line."/>
+    <meta property="og:title" content="Git is fun"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="/posts/git-is-fun/"/>
+    
+    <meta property="og:description" content="Many people are put off by Git because it seems difficult. For people transitioning from SVN, for example, the idea of local commits is often difficult to grasp. Using the command line tools is even more off-putting for people used to rich GUI tools. However, after getting past the initial learning curve, you start feeling the power of Git on the command line."/>
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:site" content="@corneliudev"/>
+    <meta name="twitter:creator" content="@corneliudev"/>
+  
+
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet"> 
+</head>
+
+
+
+
+<body class='page page-blog-single'>
+  <div id="wrapper" class="wrapper">
+    <div class='header'>
+  <a class="header-logo" href="/">Home</a>
+  <div class="menu-main">
+    <ul>
+        
+        
+            <li class="menu-item-about">
+                <a href="/pages/about/">About</a>
+            </li>
+        
+            <li class="menu-item-posts">
+                <a href="/posts/">Posts</a>
+            </li>
+        
+    </ul>
+  </div>
+</div>
+    
+  <div class="blog">
+    
+      <div class="author">
+  <img width="30" class="author-image" src="/images/portrait.jpeg" />
+  <span class="author-name">Corneliu Dascălu</span>
+  <span class="author-divider"></span>
+  <span class="author-date">November 26, 2015</span>
+</div>
+    
+    <div class="intro">
+      <h1>Git is fun</h1>
+      
+    </div>
+    <div class="content">
+      <p>Many people are put off by Git because it seems difficult. For people transitioning from SVN, for example, the idea of local commits is often difficult to grasp. Using the command line tools is even more off-putting for people used to rich GUI tools.</p>
+<p>However, after getting past the initial learning curve, you start feeling the power of Git on the command line.</p>
+<p>But before saying anything else, I want to argue for using Git on the command line as the only way to really learn Git. GUI tools are limited by the number of items they can cram into a menu, so they have to compromise, and dumb it down. On the contrary, the command line gives you nearly unlimited freedom. Once you know enough to handle day-to-day tasks, you are free to learn and explore at your own pace (or not). And once you know how Git works behind the scenes, you know how to use any GUI client.</p>
+<hr>
+<h2 id="aliases">Aliases</h2>
+<p>Git aliases are used to create shortcuts for often used commands. They save you time by letting you write just a few characters instead of a long, complicated command. They also help you avoid mistakes.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">[alias]  
+ st = status  
+ ci = commit  
+ co = checkout  
+ rev = merge --no-ff --no-commit  
+ br = branch  
+ ls = ls-files
+</code></pre></div><h2 id="customized-log">Customized log</h2>
+<p>The log is one of the most often used commands in Git. As such, it is a good thing that it can be customized for different use cases. Sometimes you only need a quick glance at the recent changes, and sometimes you need the full picture, so you can display only what you need.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">git log --graph  
+git log --oneline  
+git log --pretty=format:git log &lt;revision&gt;  
+git log -L &lt;start&gt;,&lt;end&gt;:&lt;file&gt;![image](/images/git-is-fun/1.jpg)
+</code></pre></div><p><figure><img src="/images/git-is-fun/1.jpg"
+         alt="This is what the default log looks like"/><figcaption>
+            <p>This is what the default log looks like</p>
+        </figcaption>
+</figure>
+
+<figure><img src="/images/git-is-fun/2.jpg"
+         alt="And this is how it can be customized"/><figcaption>
+            <p>And this is how it can be customized</p>
+        </figcaption>
+</figure>
+</p>
+<h2 id="diff-tools">Diff tools</h2>
+<p>Diffing is where the command line is not suited for human abilities. We are used to nice shapes, arrows, and colors, while the terminal displays pluses and minuses. There are very powerful GUI diff tools that help you. On Linux, one of the best is Meld.</p>
+<figure><img src="/images/git-is-fun/3.png"
+         alt="Meld screenshot"/><figcaption>
+            <p>Meld screenshot</p>
+        </figcaption>
+</figure>
+
+<p>Where <em>diff</em> shines in the command line though, is comparing different versions of a file, or show the difference between commits easily.</p>
+<p>Show the differences between the current <em>index.html</em> file and the one on the <em>develop</em> branch:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">git diff develop -- index.html
+</code></pre></div><p>Show all the differences between two branches (or commits):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">git diff develop..master
+git diff HEAD..HEAD~5
+</code></pre></div><p>If you want to use the terminal, though, <a href="https://github.com/ymattw/cdiff">cdiff</a> is an awesome tool that improves the diff experience a lot:</p>
+<figure><img src="/images/git-is-fun/4.png"
+         alt="git diff develop | cdiff -s"/><figcaption>
+            <p><code>git diff develop | cdiff -s</code></p>
+        </figcaption>
+</figure>
+
+<h2 id="tig">tig</h2>
+<p>If you are not confident enough to use git commands but still want to use the terminal, you can use a tool like <a href="http://jonas.nitro.dk/tig/">tig</a>. It simplifies browsing the repository and helps with some simple commands.</p>
+<figure><img src="/images/git-is-fun/5.png"/>
+</figure>
+
+<h2 id="advanced-usage">Advanced usage</h2>
+<p>Where Git really shines is the advanced commands that are probably not available in your favorite git GUI client.</p>
+<p>To list the branches that are merged (or not) in the current branch:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">git branch --merged  
+git branch --no-merged
+</code></pre></div><p>For recovering lost branches or commits</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">git reflog
+</code></pre></div><p>To find the common ancestor of two branches</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">git merge-base &lt;branch1&gt; &lt;branch2&gt;
+</code></pre></div><p>To rewrite history</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">git rebase -i &lt;revision&gt;
+</code></pre></div><p>To commit partially</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">git commit -p  
+git commit *.java  
+git commit *Test.java  
+git commit **controller/**
+</code></pre></div><p>Combine all this with some Bash magic and you can get amazing results.</p>
+<hr>
+<p>Finally the most fun part of using the Git command line tools is the satisfaction of achieving what you wanted and knowing exactly what you did. It’s a huge difference between clicking a single button in a GUI client like <a href="https://www.sourcetreeapp.com/">SourceTree</a> to “release” a feature (while the client runs some obscure magic behind the scenes) and doing each step by hand, and crafting each commit message the way you want it.</p>
+<p>It’s like eating a burger from the street corner versus cooking an entire meal yourself.</p>
+
+    </div>
+  </div>
+
+    <div class="footer">
+  
+  <div class="footer-social">
+    
+      <span class="social-icon social-icon-twitter">
+        <a href="https://twitter.com/corneliudev" title="twitter" target="_blank" rel="noopener">
+          <img src="/images/social/twitter.svg" width="24" height="24" alt="twitter"/>
+        </a>
+      </span>
+    
+      <span class="social-icon social-icon-github">
+        <a href="https://github.com/corneliudascalu" title="github" target="_blank" rel="noopener">
+          <img src="/images/social/github.svg" width="24" height="24" alt="github"/>
+        </a>
+      </span>
+    
+      <span class="social-icon social-icon-linkedin">
+        <a href="https://www.linkedin.com/in/corneliudascalu/" title="linkedin" target="_blank" rel="noopener">
+          <img src="/images/social/linkedin.svg" width="24" height="24" alt="linkedin"/>
+        </a>
+      </span>
+    
+  </div>
+  
+</div>
+  </div>
+
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/bundle.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.js"></script>
+  
+
+  
+  
+
+  
+  
+  
+    
+  
+
+
+</body>
+</html>

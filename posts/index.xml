@@ -8,13 +8,14 @@
     <language>en-us</language>
     <lastBuildDate>Sun, 24 Feb 2019 00:00:00 +0000</lastBuildDate><atom:link href="/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Resurrection</title>
-      <link>/posts/revival/</link>
-      <pubDate>Sat, 11 Dec 2021 15:18:56 +0200</pubDate>
+      <title>Git is fun</title>
+      <link>/posts/git-is-fun/</link>
+      <pubDate>Thu, 26 Nov 2015 15:31:49 +0200</pubDate>
       
-      <guid>/posts/revival/</guid>
-      <description>After a very long break of several years during which a lot of things happened in my personal and professional life, I decided to give this blogging thing another go. Not necessarily because of an unquenchable thirst for writing, but to help me keep track of my ongoing projects and things I learn.
-So, without further ado, I&amp;rsquo;m starting a series of posts documenting my experience developing a small mobile application using different technologies for different platforms.</description>
+      <guid>/posts/git-is-fun/</guid>
+      <description>Many people are put off by Git because it seems difficult. For people transitioning from SVN, for example, the idea of local commits is often difficult to grasp. Using the command line tools is even more off-putting for people used to rich GUI tools.
+However, after getting past the initial learning curve, you start feeling the power of Git on the command line.
+But before saying anything else, I want to argue for using Git on the command line as the only way to really learn Git.</description>
     </item>
     
     <item>
