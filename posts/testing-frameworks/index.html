@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Testing Legacy Code: Frameworks - Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/favicon.png">
+
+  
+  
+  <link rel="stylesheet" href="/css/style.min.f7aa4083826a432bcf71ee94870208f8a06dafeb8e8927e66b4349d416541ba5.css">
+  
+
+  
+    <meta name="description" content="One often encountered feature of legacy code is a tight coupling to an external framework or SDK."/>
+    <meta property="og:title" content="Testing Legacy Code: Frameworks"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="/posts/testing-frameworks/"/>
+    
+    <meta property="og:description" content="One often encountered feature of legacy code is a tight coupling to an external framework or SDK."/>
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:site" content="@corneliudev"/>
+    <meta name="twitter:creator" content="@corneliudev"/>
+  
+
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet"> 
+</head>
+
+
+
+
+<body class='page page-blog-single'>
+  <div id="wrapper" class="wrapper">
+    <div class='header'>
+  <a class="header-logo" href="/">Home</a>
+  <div class="menu-main">
+    <ul>
+        
+        
+            <li class="menu-item-about">
+                <a href="/pages/about/">About</a>
+            </li>
+        
+            <li class="menu-item-posts">
+                <a href="/posts/">Posts</a>
+            </li>
+        
+    </ul>
+  </div>
+</div>
+    
+  <div class="blog">
+    
+      <div class="author">
+  <img width="30" class="author-image" src="/images/portrait.jpeg" />
+  <span class="author-name">Corneliu Dascălu</span>
+  <span class="author-divider"></span>
+  <span class="author-date">October 13, 2016</span>
+</div>
+    
+    <div class="intro">
+      <h1>Testing Legacy Code: Frameworks</h1>
+      
+    </div>
+    <div class="content">
+      <p>One often encountered feature of legacy code is a tight coupling to an external framework or SDK. It may be in the form of a “Manager” or “ApiClient” singleton, used throughout the application in the most critical areas. Or it may be more subtle, like making use of a “DateUtil” class provided by the framework.</p>
+<p>You may ask “What’s your problem? Why should I reinvent the wheel?”. No, you shouldn’t. Hear me out.</p>
+<p>Using libraries, SDKs, frameworks etc. is a good thing, especially when they are mature and battle-tested. <a href="https://www.youtube.com/watch?v=-5wpm-gesOY">There is no point in rolling your own HTTP client or date util</a>. The problem is when they are used without thinking how you would replace them.</p>
+<p>Because sometimes libraries are deprecated. Or new versions contain breaking changes. Or a newer and fancier library is released, and you are stuck with code written when the dinosaurs were still a thing.</p>
+<p>Or you just want to write some unit tests. And when you have legacy code peppered with framework method calls, that’s when the fun starts.</p>
+<h2 id="singletons">Singletons</h2>
+<p>Oh, yes, everybody loves to <a href="https://corneliudascalu.com/posts/testing-legacy-code">hate on singletons</a>. It’s even worse when the code uses singletons from an external library.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">loadImage</span><span class="o">(){</span>  
+  <span class="n">Picasso</span><span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="n">context</span><span class="o">).</span><span class="na">load</span><span class="o">(</span><span class="n">url</span><span class="o">).</span><span class="na">into</span><span class="o">(</span><span class="n">view</span><span class="o">);</span>  
+<span class="o">}</span>
+</code></pre></div><p>This is a beautiful line of code. Any Android developer will tell you that. The day Jake Wharton published <a href="https://github.com/square/picasso">Picasso</a> should be year zero in the Android community.</p>
+<p>But try to write a unit test for that method. Or even better, imagine how real code looks, for example a well aged list adapter, bearing the scars of countless bug fixes and cleanups.</p>
+<p>You could modify the code to supply a reference to Picasso through dependency injection, and mock it in the unit tests. It will work pretty well.</p>
+<p>But imagine you have to switch to another library, like <a href="https://developer.android.com/training/volley/index.html">Volley</a> (<em>why would anyone use anything else than Picasso? Anyway…</em>). You would need to change your code to something like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">loadImage</span><span class="o">(){</span>  
+  <span class="n">imageLoader</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">url</span><span class="o">,</span> <span class="n">ImageLoader</span><span class="o">.</span><span class="na">getImageListener</span><span class="o">(</span><span class="n">view</span><span class="o">,</span>   
+    <span class="n">R</span><span class="o">.</span><span class="na">drawable</span><span class="o">.</span><span class="na">default</span><span class="o">,</span> <span class="n">R</span><span class="o">.</span><span class="na">drawable</span><span class="o">.</span><span class="na">error</span><span class="o">));</span>  
+<span class="o">}</span>
+</code></pre></div><p>And of course, your tests will have to be rewritten as well.</p>
+<p>What if you used a thin wrapper around Picasso, like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">GenericImageLoader</span> <span class="o">{</span>
+  <span class="kt">void</span> <span class="nf">loadImage</span><span class="o">(</span><span class="n">String</span> <span class="n">url</span><span class="o">,</span> <span class="n">ImageView</span> <span class="n">imageView</span><span class="o">);</span>
+<span class="o">}</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">PicassoImageLoader</span> <span class="kd">implements</span> <span class="n">GenericImageLoader</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">loadImage</span><span class="o">(</span><span class="n">url</span><span class="o">,</span> <span class="n">view</span><span class="o">){</span>
+    <span class="n">Picasso</span><span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="n">context</span><span class="o">).</span><span class="na">load</span><span class="o">(</span><span class="n">url</span><span class="o">).</span><span class="na">into</span><span class="o">(</span><span class="n">view</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="c1">/// usage in the code: 
+</span><span class="c1"></span><span class="kd">private</span> <span class="n">GenericImageLoader</span> <span class="n">loader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PicassoImageLoader</span><span class="o">();</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">initializeStuff</span><span class="o">(){</span>
+  <span class="k">this</span><span class="o">.</span><span class="na">loader</span><span class="o">.</span><span class="na">loadImage</span><span class="o">(</span><span class="s">&#34;http://...&#34;</span><span class="o">,</span> <span class="n">profileImageView</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div><p>You would have to accept a compromise and not unit test the wrapper. If you use it only as a wrapper, the method calls will map directly to library methods. As long as you don’t do anything wild in there, you should be safe.</p>
+<p>Now, unit testing the <em>initializeStuff()</em> method is more straightforward. And if you had to switch to Volley, well, you would just create a different implementation of the <em>GenericImageLoader</em> interface:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">VolleyImageLoader</span> <span class="kd">implements</span> <span class="n">GenericImageLoader</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">loadImage</span><span class="o">(</span><span class="n">url</span><span class="o">,</span> <span class="n">view</span><span class="o">){</span>
+    <span class="n">imageLoader</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">url</span><span class="o">,</span> <span class="n">ImageLoader</span><span class="o">.</span><span class="na">getImageListener</span><span class="o">(</span><span class="n">view</span><span class="o">,</span>
+      <span class="n">R</span><span class="o">.</span><span class="na">drawable</span><span class="o">.</span><span class="na">default</span><span class="o">,</span> <span class="n">R</span><span class="o">.</span><span class="na">drawable</span><span class="o">.</span><span class="na">error</span><span class="o">));</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="c1">// usage in the code:
+</span><span class="c1"></span><span class="kd">private</span> <span class="n">GenericImageLoader</span> <span class="n">loader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">VolleyImageLoader</span><span class="o">();</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">initializeStuff</span><span class="o">(){</span>
+  <span class="k">this</span><span class="o">.</span><span class="na">loader</span><span class="o">.</span><span class="na">loadImage</span><span class="o">(</span><span class="s">&#34;http://...&#34;</span><span class="o">,</span> <span class="n">profileImageView</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div><p>The <em>initializeStuff()</em> method remains unchanged, but there’s a <a href="https://www.youtube.com/watch?v=t9-CS2v8wcc">whole new world</a> (<em>ahem!)</em> behind the <em>GenericImageLoader</em> interface. Yay polymorphism!</p>
+<h2 id="static-methods">Static methods</h2>
+<p>Now, imagine you have a utility class with static methods in a method you want to test. Normally, if the static methods don’t do anything magic, they are not a problem. But then you have and API designed by someone that <em>reeealy</em> loves static methods. Like this way of <a href="https://developer.android.com/training/location/receive-location-updates.html#updates">requesting location updates</a> in Android:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">startLocationUpdates</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">LocationServices</span><span class="o">.</span><span class="na">FusedLocationApi</span><span class="o">.</span><span class="na">requestLocationUpdates</span><span class="o">(</span>
+            <span class="n">mGoogleApiClient</span><span class="o">,</span> <span class="n">mLocationRequest</span><span class="o">,</span> <span class="k">this</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div><p>Good luck testing that. You cannot even mock it. Your only chance is to create a wrapper around the API:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">LocationApi</span> <span class="o">{</span>
+  <span class="kt">void</span> <span class="nf">requestLocationUpdates</span><span class="o">(</span><span class="n">GoogleApiClient</span> <span class="n">client</span><span class="o">,</span>                       
+              <span class="n">LocationRequest</span> <span class="n">request</span><span class="o">,</span> <span class="n">LocationListener</span> <span class="n">listener</span><span class="o">);</span>
+<span class="o">}</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">FusedLocationApiWrapper</span> <span class="kd">implements</span> <span class="n">LocationApi</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">requestLocationUpdates</span><span class="o">(</span><span class="n">GoogleApiClient</span> <span class="n">client</span><span class="o">,</span>                       
+              <span class="n">LocationRequest</span> <span class="n">request</span><span class="o">,</span> <span class="n">LocationListener</span> <span class="n">listener</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">LocationServices</span><span class="o">.</span><span class="na">FusedLocationApi</span><span class="o">.</span><span class="na">requestLocationUpdates</span><span class="o">(</span>     
+                    <span class="n">client</span><span class="o">,</span> <span class="n">request</span><span class="o">,</span> <span class="n">listener</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="c1">// usage in code 
+</span><span class="c1"></span><span class="kd">private</span> <span class="n">LocationApi</span> <span class="n">wrapper</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FusedLocationApiWrapper</span><span class="o">();</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">startLocationUpdates</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">wrapper</span><span class="o">.</span><span class="na">requestLocationUpdates</span><span class="o">(</span>
+            <span class="n">mGoogleApiClient</span><span class="o">,</span> <span class="n">mLocationRequest</span><span class="o">,</span> <span class="k">this</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div><p>Again, as long as you’re only wrapping the static methods, you can live without tests.</p>
+<p>However, you will probably realize that the <em>LocationApi</em> interface is still tightly coupled to the <em>FusedLocationApi.</em> It uses the <em>LocationRequest</em> class, needs a <em>GoogleApiClient</em> and a <em>LocationListener,</em> all part of Google’s Play Services.</p>
+<p>To create a truly abstract layer over the location API, you have to define your own way of supplying the information contained in the <em>LocationRequest</em>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">LocationApi</span> <span class="o">{</span>
+  <span class="kt">void</span> <span class="nf">requestQuickLocation</span><span class="o">();</span>
+  <span class="kt">void</span> <span class="nf">requestPreciseLocation</span><span class="o">();</span>
+<span class="o">}</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">FusedLocationApiWrapper</span> <span class="kd">implements</span> <span class="n">LocationApi</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="n">OnLocationListener</span> <span class="n">listener</span><span class="o">;</span>
+  <span class="kd">public</span> <span class="nf">FusedLocationApiWrapper</span><span class="o">(</span><span class="n">GoogleApiClient</span> <span class="n">client</span><span class="o">){</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">client</span> <span class="o">=</span> <span class="n">client</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">requestQuickLocation</span><span class="o">(</span><span class="n">GoogleApiClient</span> <span class="n">client</span><span class="o">,</span>                       
+              <span class="n">LocationRequest</span> <span class="n">request</span><span class="o">,</span> <span class="n">LocationListener</span> <span class="n">listener</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">LocationRequest</span> <span class="n">request</span> <span class="o">=</span> <span class="n">LocationRequest</span><span class="o">.</span><span class="na">create</span><span class="o">();</span>
+    <span class="n">request</span><span class="o">.</span><span class="na">setMaxWaitTime</span><span class="o">(</span><span class="n">ONE_SECOND</span><span class="o">);</span>
+    <span class="n">request</span><span class="o">.</span><span class="na">setPriority</span><span class="o">(</span><span class="n">PRIORITY_BALANCED_POWER_ACCURACY</span><span class="o">);</span>
+    <span class="n">LocationServices</span><span class="o">.</span><span class="na">FusedLocationApi</span><span class="o">.</span><span class="na">requestLocationUpdates</span><span class="o">(</span>     
+                    <span class="n">client</span><span class="o">,</span> <span class="n">request</span><span class="o">,</span> <span class="n">listener</span><span class="o">);</span>
+  <span class="o">}</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">requestPreciseLocation</span><span class="o">(</span><span class="n">GoogleApiClient</span> <span class="n">client</span><span class="o">,</span>                       
+              <span class="n">LocationRequest</span> <span class="n">request</span><span class="o">,</span> <span class="n">LocationListener</span> <span class="n">listener</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">LocationRequest</span> <span class="n">request</span> <span class="o">=</span> <span class="n">LocationRequest</span><span class="o">.</span><span class="na">create</span><span class="o">();</span>
+    <span class="n">request</span><span class="o">.</span><span class="na">setMaxWaitTime</span><span class="o">(</span><span class="n">FIVE_SECONDS</span><span class="o">);</span>
+    <span class="n">request</span><span class="o">.</span><span class="na">setPriority</span><span class="o">(</span><span class="n">PRIORITY_HIGH_ACCURACY</span><span class="o">);</span>
+    <span class="n">LocationServices</span><span class="o">.</span><span class="na">FusedLocationApi</span><span class="o">.</span><span class="na">requestLocationUpdates</span><span class="o">(</span>     
+                    <span class="n">client</span><span class="o">,</span> <span class="n">request</span><span class="o">,</span> <span class="n">listener</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="c1">// usage in code
+</span><span class="c1"></span><span class="kd">private</span> <span class="n">GoogleApiClient</span> <span class="n">client</span><span class="o">;</span>
+<span class="kd">private</span> <span class="n">LocationApi</span> <span class="n">wrapper</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FusedLocationApiWrapper</span><span class="o">(</span><span class="n">client</span><span class="o">);</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">startLocationUpdates</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">wrapper</span><span class="o">.</span><span class="na">requestQuickLocation</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div><p>The client code looks a lot cleaner, is easier to unit test and it’s easier to swap in another location provider. And you get to write a lot of extra code! What’s not to like? (<em>Don’t answer that</em>).</p>
+<h2 id="final-classes-and-methods">Final classes and methods</h2>
+<p>Libraries and frameworks sometimes mark their public classes and methods as final. This makes a lot of sense from a security point of view. As an API creator, you don’t want developers to have too much fun with the internals of your API. So you try to keep your public facing interface as airtight as possible: final methods, singletons to enforce a single instance etc.</p>
+<p>But you cannot mock them. See the above.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p><a href="https://en.wikipedia.org/wiki/Encapsulation_(computer_programming)">Encapsulation</a> is important. <a href="https://en.wikipedia.org/wiki/Separation_of_concerns">Separation of concerns</a> is important. <a href="https://en.wikipedia.org/wiki/Coupling_(computer_programming)">Low coupling</a> is important. <a href="https://en.wikipedia.org/wiki/Dependency_inversion_principle">Dependency inversion</a> is important.</p>
+<p>But it’s more important to know they are important. You don’t always have the time to abstract away everything. And neither you should. Just remember that external libraries are powerful beasts. It’s best to keep them at arm’s length.</p>
+
+    </div>
+  </div>
+
+    <div class="footer">
+  
+  <div class="footer-social">
+    
+      <span class="social-icon social-icon-twitter">
+        <a href="https://twitter.com/corneliudev" title="twitter" target="_blank" rel="noopener">
+          <img src="/images/social/twitter.svg" width="24" height="24" alt="twitter"/>
+        </a>
+      </span>
+    
+      <span class="social-icon social-icon-github">
+        <a href="https://github.com/corneliudascalu" title="github" target="_blank" rel="noopener">
+          <img src="/images/social/github.svg" width="24" height="24" alt="github"/>
+        </a>
+      </span>
+    
+      <span class="social-icon social-icon-linkedin">
+        <a href="https://www.linkedin.com/in/corneliudascalu/" title="linkedin" target="_blank" rel="noopener">
+          <img src="/images/social/linkedin.svg" width="24" height="24" alt="linkedin"/>
+        </a>
+      </span>
+    
+  </div>
+  
+</div>
+  </div>
+
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/bundle.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.js"></script>
+  
+
+  
+  
+
+  
+  
+  
+    
+  
+
+
+</body>
+</html>

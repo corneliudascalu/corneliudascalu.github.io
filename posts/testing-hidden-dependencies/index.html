@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Testing Legacy Code: Hidden Dependencies - Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/favicon.png">
+
+  
+  
+  <link rel="stylesheet" href="/css/style.min.f7aa4083826a432bcf71ee94870208f8a06dafeb8e8927e66b4349d416541ba5.css">
+  
+
+  
+    <meta name="description" content="Let’s talk about The God Object, The Blob, that giant method with hundreds of lines that does a million things. You know it, it’s that class that powers the entire application and everyone in the team is afraid to change even a single line of code. "/>
+    <meta property="og:title" content="Testing Legacy Code: Hidden Dependencies"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="/posts/testing-hidden-dependencies/"/>
+    
+    <meta property="og:description" content="Let’s talk about The God Object, The Blob, that giant method with hundreds of lines that does a million things. You know it, it’s that class that powers the entire application and everyone in the team is afraid to change even a single line of code. "/>
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:site" content="@corneliudev"/>
+    <meta name="twitter:creator" content="@corneliudev"/>
+  
+
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet"> 
+</head>
+
+
+
+
+<body class='page page-blog-single'>
+  <div id="wrapper" class="wrapper">
+    <div class='header'>
+  <a class="header-logo" href="/">Home</a>
+  <div class="menu-main">
+    <ul>
+        
+        
+            <li class="menu-item-about">
+                <a href="/pages/about/">About</a>
+            </li>
+        
+            <li class="menu-item-posts">
+                <a href="/posts/">Posts</a>
+            </li>
+        
+    </ul>
+  </div>
+</div>
+    
+  <div class="blog">
+    
+      <div class="author">
+  <img width="30" class="author-image" src="/images/portrait.jpeg" />
+  <span class="author-name">Corneliu Dascălu</span>
+  <span class="author-divider"></span>
+  <span class="author-date">September 23, 2016</span>
+</div>
+    
+    <div class="intro">
+      <h1>Testing Legacy Code: Hidden Dependencies</h1>
+      
+    </div>
+    <div class="content">
+      <p>Let’s talk about <a href="https://en.wikipedia.org/wiki/God_object">The God Object</a>, <a href="https://sourcemaking.com/antipatterns/the-blob">The Blob</a>, that giant method with hundreds of lines that does a million things. You know it, it’s that class that powers the entire application and everyone in the team is afraid to change even a single line of code.</p>
+<figure><img src="/images/testing-hidden-dependencies/1.jpg"/>
+</figure>
+
+<p>Usually, that’s the class that “just works” because it has been polished with the tears of the poor developers who have fixed countless bugs during the long years of its existence. Any change requires an entire sprint just for impact analysis, and maybe a couple others for bug fixing and stabilization. And, unfortunately, new features often require changes in this class, just because it contains the most parts of the application.</p>
+<p>At some point, someone decides enough is enough and something needs to be done. The safe thing to do is to write some tests for it, as a safety harness against breaking changes. And you are the brave soul who is gonna do it.</p>
+<hr>
+<p>First, you will realize it’s impossible.</p>
+<p>The code is so tangled that even if you manage to design a test for it, you can’t run it because it has calls to half of the application’s components, or it executes network requests, or it reads from a configuration file etc.</p>
+<p>Let’s look at an example:</p>
+<script type="application/javascript" src="https://gist.github.com/corneliudascalu/403361073244bf8fd8a2cb3998dd370a.js"></script>
+
+<p>This is only sample code. The real code would be orders of magnitudes larger, and peppered with null checks, try-catch blocks or log messages. And if you are not already familiar with it, it will be extremely difficult to grasp all its intricacies (which is a must, if you want to write useful tests).</p>
+<h1 id="1-instantiating">1. Instantiating</h1>
+<p>Even just creating a new <em>PizzaHelper</em> object will most likely fail. Depending on the implementation of the <em>DbHelper</em>, it may access some APIs that are not working in a test environment.</p>
+<p>In a real life scenario, the constructor of such a class will contain much more of these deep initializations.</p>
+<p>If you actually think about it, the constructor is doing all this stuff just because the class <strong>needs</strong> those dependencies. It could just as well <strong>receive</strong> the dependencies, already created, from elsewhere.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="nf">PizzaHelper</span><span class="o">(</span><span class="n">PizzaDatabase</span> <span class="n">db</span><span class="o">)</span> <span class="o">{</span>  
+    <span class="k">this</span><span class="o">.</span><span class="na">pizzaDatabase</span> <span class="o">=</span> <span class="n">db</span><span class="o">;</span>  
+<span class="o">}</span>
+</code></pre></div><p>Now you can instantiate a <em>PizzaHelper</em> much more easily. For starters, you can pass a <em>null</em> as a parameter and see what happens. (This is a trick recommended by <a href="http://www.goodreads.com/book/show/44919.Working_Effectively_with_Legacy_Code">Michael Feathers</a>, as a way to quickly find out if the parameter is used and what is its potential impact). After that, you will probably pass in a test double, for example a <em>FakePizzaDatabase</em> which keeps data only in memory.</p>
+<h1 id="2-more-dependencies">2. More dependencies</h1>
+<p>If you call the <em>buyPizza()</em> method now, you will also run into trouble. The <em>UserManager</em> will be created and maybe it will check for a logged in user. The <em>HttpClient</em> will want to send a request to the server. Both are too much for a unit test.</p>
+<p>The quickest way to solve this would be to extract these dependencies as member variables and set them using constructor parameters or setter methods. This way you can pass in mock objects and actually run the test.</p>
+<script type="application/javascript" src="https://gist.github.com/corneliudascalu/bf8bf51e5557832734abbfbdf86fee6c.js"></script>
+
+<p>However, the test will be pretty complicated. You need to check if a call to <em>buyPizza()</em> results in a call to the mock <em>HttpClient</em> with a request string that matches the expected order.</p>
+<h1 id="3-cleaning-up">3. Cleaning up</h1>
+<p>Once you have set up a test harness, the fun of breaking the class apart can start. Our sample class is not large, but it can already be cleaned up a lot. A real class has a lot more garbage in it.</p>
+<p>The approach I like to use resembles a game of Jenga. You have to identify the easiest piece you can pull from the pile, and then the next one, and so on. If you follow strict TDD, you should first modify the unit tests, and then the actual code.</p>
+<p>For example, one of the first things that are obvious is that the <em>PizzaHelper</em> doesn’t actually need a reference to the <em>UserManager</em>, but only the user id. So you can pass the user id as a parameter to the <em>buyPizza()</em> method, getting rid of one constructor parameter. (You also improve the code in ways not immediately obvious in this sample code. For example, in real code you would need to handle the case when the user is not logged in.)</p>
+<p>The next thing to notice is the order being created inside the <em>buyPizza()</em> method. This breaks the <a href="https://en.wikipedia.org/wiki/Single_responsibility_principle">Single Responsibility Principle</a>. The order could be created by another class, an <em>OrderGenerator</em>, or an <em>OrderFactory</em>. This will allow you to group in the same class the logic for creating different kinds of orders.</p>
+<p>One other thing to be done would be to pass the <em>Callback</em> as a method parameter. This will separate another responsibility outside the <em>PizzaHelper</em> class.</p>
+<script type="application/javascript" src="https://gist.github.com/corneliudascalu/d9dc1921508046262e5afb83a93e2958.js"></script>
+
+<p>Now the code looks a lot cleaner, but it could be cleaned up even further. For example, the <em>OrderFactory</em> could be passed as a constructor dependency, allowing you to mock it, or to modify the order creation logic in the future without touching the <em>PizzaHelper</em>. The four parameters of the <em>buyPizza()</em> method could be encapsulated in a small class, to improve the clarity of the code (as it is now, someone could call the method with the <em>count</em> and <em>userId</em> swapped and the compiler will happily go along with it).</p>
+<h1 id="4-reality">4. Reality</h1>
+<p>In real code, it’s a lot more difficult to identify and apply these improvements. It’s important to understand that you cannot do it all at once. Most of the time, one small insignificant change helps you see another one, moving some code to a private method gives birth to a separate class, and step by step your class starts looking leaner. It’s a continuous process, which requires discipline. You have to stop from time to time to clean up the accumulated dirt before it starts rotting.</p>
+<blockquote>
+<p>Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away — <a href="https://www.goodreads.com/quotes/19905">Antoine de Saint-Exupéry</a></p>
+</blockquote>
+
+    </div>
+  </div>
+
+    <div class="footer">
+  
+  <div class="footer-social">
+    
+      <span class="social-icon social-icon-twitter">
+        <a href="https://twitter.com/corneliudev" title="twitter" target="_blank" rel="noopener">
+          <img src="/images/social/twitter.svg" width="24" height="24" alt="twitter"/>
+        </a>
+      </span>
+    
+      <span class="social-icon social-icon-github">
+        <a href="https://github.com/corneliudascalu" title="github" target="_blank" rel="noopener">
+          <img src="/images/social/github.svg" width="24" height="24" alt="github"/>
+        </a>
+      </span>
+    
+      <span class="social-icon social-icon-linkedin">
+        <a href="https://www.linkedin.com/in/corneliudascalu/" title="linkedin" target="_blank" rel="noopener">
+          <img src="/images/social/linkedin.svg" width="24" height="24" alt="linkedin"/>
+        </a>
+      </span>
+    
+  </div>
+  
+</div>
+  </div>
+
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/bundle.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.js"></script>
+  
+
+  
+  
+
+  
+  
+  
+    
+  
+
+
+</body>
+</html>

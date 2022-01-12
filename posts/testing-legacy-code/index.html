@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Testing Legacy Code: Singletons - Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/favicon.png">
+
+  
+  
+  <link rel="stylesheet" href="/css/style.min.f7aa4083826a432bcf71ee94870208f8a06dafeb8e8927e66b4349d416541ba5.css">
+  
+
+  
+    <meta name="description" content="You know that guy that works on that messy codebase? The guy that always has a story about some weird bug he spent several days on?"/>
+    <meta property="og:title" content="Testing Legacy Code: Singletons"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="/posts/testing-legacy-code/"/>
+    
+    <meta property="og:description" content="You know that guy that works on that messy codebase? The guy that always has a story about some weird bug he spent several days on?"/>
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:site" content="@corneliudev"/>
+    <meta name="twitter:creator" content="@corneliudev"/>
+  
+
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet"> 
+</head>
+
+
+
+
+<body class='page page-blog-single'>
+  <div id="wrapper" class="wrapper">
+    <div class='header'>
+  <a class="header-logo" href="/">Home</a>
+  <div class="menu-main">
+    <ul>
+        
+        
+            <li class="menu-item-about">
+                <a href="/pages/about/">About</a>
+            </li>
+        
+            <li class="menu-item-posts">
+                <a href="/posts/">Posts</a>
+            </li>
+        
+    </ul>
+  </div>
+</div>
+    
+  <div class="blog">
+    
+      <div class="author">
+  <img width="30" class="author-image" src="/images/portrait.jpeg" />
+  <span class="author-name">Corneliu Dascălu</span>
+  <span class="author-divider"></span>
+  <span class="author-date">July 11, 2016</span>
+</div>
+    
+    <div class="intro">
+      <h1>Testing Legacy Code: Singletons</h1>
+      
+    </div>
+    <div class="content">
+      <p>You know that guy that works on that messy codebase? The guy that always has a story about some weird bug he spent several days on? If you ask him what is the worst part about that code, his answer might be something like</p>
+<figure><img src="/images/testing-legacy-code/1.jpg"/>
+</figure>
+
+<p>f you don’t know <a href="http://stackoverflow.com/questions/137975/what-is-so-bad-about-singletons">why that is bad</a> consider yourself lucky. If you just chuckled bitterly, then you know what a plague they are when you need to put your code in a test harness.</p>
+<p>Imagine the following piece of code:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">orderPizza</span><span class="o">(</span><span class="n">String</span> <span class="n">type</span><span class="o">,</span> <span class="kt">int</span> <span class="n">quantity</span><span class="o">){</span>  
+    <span class="n">Address</span> <span class="n">address</span> <span class="o">=</span> <span class="n">UserManager</span><span class="o">.</span><span class="na">getInstance</span><span class="o">().</span><span class="na">getHomeAddress</span><span class="o">();</span>  
+    <span class="c1">// do stuff   
+</span><span class="c1"></span>    <span class="n">OrderManager</span><span class="o">.</span><span class="na">getInstance</span><span class="o">().</span><span class="na">placeOrder</span><span class="o">(</span><span class="n">type</span><span class="o">,</span> <span class="n">quantity</span><span class="o">,</span> <span class="n">address</span><span class="o">);</span>  
+<span class="o">}</span>
+</code></pre></div><p>A useful test might verify that calling the <em>orderPizza()</em> method results in an order with the correct type and quantity placed for the correct address. Without touching the method’s code, you will need at least to create a fake user somehow, and to verify that an order has been placed in the database. You will quickly realize that this path leads to madness: you will probably have to authenticate the fake user and maybe initialize the <em>OrderManager</em>.</p>
+<p>Ideally, you want only to verify that the <em>placeOrder()</em> method was called with the correct parameters. Usually, this is achieved by using a <a href="http://www.martinfowler.com/bliki/TestDouble.html">test double</a> for the <em>OrderManager</em>. But that’s impossible, because by definition, a singleton allows creating only a single instance of the class, and doesn’t let you change it. So, unless you change something in the code, you are stuck using the real <em>OrderManager</em>.</p>
+<p>So let’s see what you could change in the code, shall we? Of course, you want to do small changes to avoid breaking the code before you even have a chance to add tests.</p>
+<h2 id="extract-parameter">Extract Parameter</h2>
+<p>You could extract the <em>OrderManager</em> and <em>UserManager</em> as method parameters. The method signature will be something like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">orderPizza</span><span class="o">(</span><span class="n">OrderManager</span> <span class="n">orderManager</span><span class="o">,</span> <span class="n">UserManager</span> <span class="n">userManager</span><span class="o">,</span> <span class="n">String</span> <span class="n">type</span><span class="o">,</span> <span class="kt">int</span> <span class="n">quantity</span><span class="o">)</span>
+</code></pre></div><p>It looks decidedly messier, but it lets you pass fake managers to the method. Of course, you will have to modify the code everywhere this method is called. It could mean a lot of changes, each one a possible source of bugs.</p>
+<h2 id="add-a-set-method-to-the-singleton">Add a set method to the singleton</h2>
+<p>You could give up the singleton’s “single-ness” and allow setting a different instance through a static <em>setInstance()</em> method. This will let you set a fake instance before running the test. Obviously, this will let anyone else set a different instance anywhere in the code. And this is how you discover again why <a href="http://programmers.stackexchange.com/questions/148108/why-is-global-state-so-evil">global state is evil</a>.</p>
+<p>You will have to add warning comments and annotations to the method to make it very clear that it’s only intended to be used in tests. Murphy’s law guarantees that they will be ignored sooner or later and all hell will break loose.</p>
+<h2 id="use-a-singletonservice-locatorhttpsenwikipediaorgwikiservice_locator_pattern">Use a singleton <a href="https://en.wikipedia.org/wiki/Service_locator_pattern">service locator</a></h2>
+<p>This is my favorite method, because the changes are the less invasive. It involves creating a master singleton that contains methods to supply a reference to any singleton used in the code. For example, you will use this to get the <em>OrderManager</em> in the <em>orderPizza()</em> method:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="n">SingletonLocator</span><span class="o">.</span><span class="na">getInstance</span><span class="o">().</span><span class="na">getOrderManager</span><span class="o">();</span>
+</code></pre></div><p>To allow testing, you still need a <em>setInstance()</em> method on the <em>SingletonLocator</em>. The advantage is that only this singleton will have it, and it’s easier to make sure it’s not used outside test code.</p>
+<p>Using this approach, the <em>orderPizza()</em> method will look like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">orderPizza</span><span class="o">(</span><span class="n">String</span> <span class="n">type</span><span class="o">,</span> <span class="kt">int</span> <span class="n">quantity</span><span class="o">){</span>  
+    <span class="n">Address</span> <span class="n">address</span> <span class="o">=</span> <span class="n">SingletonLocator</span><span class="o">.</span><span class="na">getInstance</span><span class="o">().</span><span class="na">getUserManager</span><span class="o">().</span><span class="na">getHomeAddress</span><span class="o">();</span>  
+    <span class="c1">// do stuff   
+</span><span class="c1"></span>    <span class="n">SingletonLocator</span><span class="o">.</span><span class="na">getInstance</span><span class="o">().</span><span class="na">getOrderManager</span><span class="o">().</span><span class="na">placeOrder</span><span class="o">(</span><span class="n">type</span><span class="o">,</span> <span class="n">quantity</span><span class="o">,</span> <span class="n">address</span><span class="o">);</span>  
+<span class="o">}</span>
+</code></pre></div><p>And a test using the <a href="http://mockito.org/">Mockito</a> framework might look like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">testOrderPizza</span><span class="o">(){</span> 
+    <span class="c1">// setup  
+</span><span class="c1"></span>    <span class="n">SingletonLocator</span> <span class="n">mockLocator</span> <span class="o">=</span> <span class="n">mock</span><span class="o">(</span><span class="n">SingletonLocator</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>  
+    <span class="n">when</span><span class="o">(</span><span class="n">mockLocator</span><span class="o">.</span><span class="na">getUserManager</span><span class="o">())</span>  
+        <span class="o">.</span><span class="na">thenReturn</span><span class="o">(</span><span class="n">mockUserManager</span><span class="o">);</span> 
+    <span class="n">when</span><span class="o">(</span><span class="n">mockLocator</span><span class="o">.</span><span class="na">getOrderManager</span><span class="o">())</span>  
+        <span class="o">.</span><span class="na">thenReturn</span><span class="o">(</span><span class="n">mockOrderManager</span><span class="o">);</span> 
+    <span class="n">SingletonLocator</span><span class="o">.</span><span class="na">setInstance</span><span class="o">(</span><span class="n">mockLocator</span><span class="o">);</span> 
+
+    <span class="c1">// execution  
+</span><span class="c1"></span>    <span class="k">new</span> <span class="n">FoodDelivery</span><span class="o">().</span><span class="na">orderPizza</span><span class="o">(</span><span class="s">&#34;Quattro Stagioni&#34;</span><span class="o">,</span> <span class="n">1</span><span class="o">);</span> 
+
+    <span class="c1">// verification  
+</span><span class="c1"></span>    <span class="n">verify</span><span class="o">(</span><span class="n">mockOrderManager</span><span class="o">).</span><span class="na">placeOrder</span><span class="o">(</span><span class="s">&#34;Quattro Stagioni&#34;</span><span class="o">,</span> <span class="n">1</span><span class="o">,</span> <span class="n">mockUserManager</span><span class="o">.</span><span class="na">getHomeAddress</span><span class="o">());</span>  
+<span class="o">}</span>
+</code></pre></div><p>Of course, whenever you have the chance, you should refactor the code, extract the hidden dependencies, and leave the code cleaner than you found it. But we don’t always get the time to do that, and we have to choose our battles.</p>
+<p>This is a quick way to make testable code out of a hot mess of singletons. It won’t make the code itself better, but it will let you surround it with tests, to give you that bit of confidence you need when you make small changes.</p>
+
+    </div>
+  </div>
+
+    <div class="footer">
+  
+  <div class="footer-social">
+    
+      <span class="social-icon social-icon-twitter">
+        <a href="https://twitter.com/corneliudev" title="twitter" target="_blank" rel="noopener">
+          <img src="/images/social/twitter.svg" width="24" height="24" alt="twitter"/>
+        </a>
+      </span>
+    
+      <span class="social-icon social-icon-github">
+        <a href="https://github.com/corneliudascalu" title="github" target="_blank" rel="noopener">
+          <img src="/images/social/github.svg" width="24" height="24" alt="github"/>
+        </a>
+      </span>
+    
+      <span class="social-icon social-icon-linkedin">
+        <a href="https://www.linkedin.com/in/corneliudascalu/" title="linkedin" target="_blank" rel="noopener">
+          <img src="/images/social/linkedin.svg" width="24" height="24" alt="linkedin"/>
+        </a>
+      </span>
+    
+  </div>
+  
+</div>
+  </div>
+
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/bundle.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.js"></script>
+  
+
+  
+  
+
+  
+  
+  
+    
+  
+
+
+</body>
+</html>
