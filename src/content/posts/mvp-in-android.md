@@ -1,5 +1,4 @@
 ---
-
 title: "Model-View-Presenter in Android"
 date: 2015-11-24T19:30:21+02:00
 description: 'Experiment with the MVP architecture paradigm using Dagger for dependency injection'
@@ -19,7 +18,6 @@ My sample app is a very simple note-taking app, MVPNotes. The app allows the use
 
 Before diving into the actual implementation, let me tell you a few things about setting up the project. I’m using Android Studio and Gradle. If you are using Ant or another build system, you should be able to translate the instructions, because I’m not using anything too fancy.
 So, here is the build.gradle file. (BTW, I recommend Octotree, a very useful extension for navigating Github repos, available for Chrome and Firefox). The first important thing in the build script is the testInstrumentationRunner bit. That sets Espresso for testing. Note that I’m actually using Double Espresso, which is Jake Wharton’s port of Espresso to Gradle. You can see it included in the list of dependencies at androidTestCompile. You should also notice the included Dagger dependencies. To avoid a conflict between the Dagger dependency and the already included Dagger in Double Espresso, I’m excluding it from the test configuration:
-   
 
 ```
 exclude group: 'com.squareup.dagger'
