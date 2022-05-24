@@ -3,7 +3,6 @@ title: "Resurrection"
 date: 2021-12-11T15:18:56+02:00
 description: "I'm ressurecting the blog after a break of several years."
 image: 
-draft: true
 
 ---
 
@@ -20,3 +19,5 @@ The application I intend to build is quite simple, with potential for additional
 Once I have an MVP I can use, I would like to add more useful features, like custom ingredients, a recipe generator and a log to keep track of the bread I bake.
 
 This app will scratch a personal itch. I'm baking sourdough bread as a hobby. Each time I prepare a new batch of dough I need to whip out my phone calculator, type with flour-dusted fingers and maybe sticky with dough. It's not pretty. So an app that saves me this step would be a small but significant improvement.
+
+Let's see how this goes.
