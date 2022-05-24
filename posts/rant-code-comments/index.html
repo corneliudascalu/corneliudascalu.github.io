@@ -73,87 +73,87 @@
 <blockquote>
 <p>I have to explain what a method does.</p>
 </blockquote>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="cm">/**
-</span><span class="cm"> * Retrieves the registration info of the user
-</span><span class="cm"> * @param args The user&#39;s id
-</span><span class="cm"> */</span>
-<span class="kd">public</span> <span class="n">String</span> <span class="nf">getInfo</span><span class="o">(</span><span class="kt">int</span> <span class="n">args</span><span class="o">){</span>
-  <span class="o">...</span>
-<span class="o">}</span>
-</code></pre></div><p>I agree that <code>String getInfo(int args)</code> is not a method you would like to use without a comment explaining what it actually does. But why don’t you use a better name for it? It doesn’t cost you anything to rename it:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="cm">/**
-</span><span class="cm"> * Retrieves the registration info of the user
-</span><span class="cm"> * @param userId The user&#39;s id
-</span><span class="cm"> */</span>
-<span class="kd">public</span> <span class="n">String</span> <span class="nf">getRegistrationInfo</span><span class="o">(</span><span class="kt">int</span> <span class="n">userId</span><span class="o">){</span>
-  <span class="o">...</span>
-<span class="o">}</span>
-</code></pre></div><p>Wow! It looks like the comment is not needed anymore, is it? It’s actually duplicating information and violating the <a href="https://en.wikipedia.org/wiki/Don't_repeat_yourself">DRY principle</a>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Retrieves the registration info of the user
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @param args The user&#39;s id
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="n">String</span> <span class="nf">getInfo</span><span class="o">(</span><span class="kt">int</span> <span class="n">args</span><span class="o">){</span>
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>I agree that <code>String getInfo(int args)</code> is not a method you would like to use without a comment explaining what it actually does. But why don’t you use a better name for it? It doesn’t cost you anything to rename it:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Retrieves the registration info of the user
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @param userId The user&#39;s id
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="n">String</span> <span class="nf">getRegistrationInfo</span><span class="o">(</span><span class="kt">int</span> <span class="n">userId</span><span class="o">){</span>
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>Wow! It looks like the comment is not needed anymore, is it? It’s actually duplicating information and violating the <a href="https://en.wikipedia.org/wiki/Don't_repeat_yourself">DRY principle</a>.</p>
 <p>Sadly, this kind of redundant comments is much too often found in actual code. Many times the comments are added because of stupid coding style rules mandating every method to be commented. And what’s a poor programmer to do? Just add a comment to satisfy the law…</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="cm">/**
-</span><span class="cm"> * Set the user&#39;s name
-</span><span class="cm"> */</span>
-<span class="kd">public</span> <span class="kt">void</span> <span class="nf">setName</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">){</span>
-  <span class="o">...</span>
-<span class="o">}</span>
-</code></pre></div><p>If I received a dollar each time I deleted such a comment, I could probably make a living out of just deleting useless comments.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Set the user&#39;s name
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">setName</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">){</span>
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>If I received a dollar each time I deleted such a comment, I could probably make a living out of just deleting useless comments.</p>
 <blockquote>
 <p>But it’s not doing any harm!</p>
 </blockquote>
 <p>Except for making code harder to read, yes, it’s not doing any harm. For now. But I guarantee you that at one point in the future somebody will need separate methods to get/set the first and last name. They will most likely use their IDE’s refactoring tool and rename the method, forgetting to rename the comment as well:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="cm">/**
-</span><span class="cm"> * Set the user&#39;s name
-</span><span class="cm"> */</span>
-<span class="kd">public</span> <span class="kt">void</span> <span class="nf">setLastName</span><span class="o">(</span><span class="n">String</span> <span class="n">lastName</span><span class="o">){</span>
-  <span class="o">...</span>
-<span class="o">}</span>
-</code></pre></div><p>BAM! Misleading comments. Extrapolate to several years of this and you start to slowly go insane.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Set the user&#39;s name
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">setLastName</span><span class="o">(</span><span class="n">String</span> <span class="n">lastName</span><span class="o">){</span>
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>BAM! Misleading comments. Extrapolate to several years of this and you start to slowly go insane.</p>
 <blockquote>
 <p>But what if I can’t find a good name for a method?</p>
 </blockquote>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="cm">/**
-</span><span class="cm"> * Display an error message to the user, log the error
-</span><span class="cm"> * and navigate to the login screen
-</span><span class="cm"> * 
-</span><span class="cm"> * @param exception The exception
-</span><span class="cm"> */</span>
-<span class="kd">public</span> <span class="kt">void</span> <span class="nf">handleError</span><span class="o">(</span><span class="n">Exception</span> <span class="n">exception</span><span class="o">){</span>
-  <span class="o">...</span>
-<span class="o">}</span>
-</code></pre></div><p>I agree, <a href="http://martinfowler.com/bliki/TwoHardThings.html">naming things is difficult</a>. Start by actually writing the best name you can think of. If <code>displayAndLogErrorThenGoToLogin()</code> doesn’t exactly roll off the tongue, ask yourself why. Ah, too many verbs, you say? Maybe it’s because the method does too many things? May I remind you of a little thing called the <a href="https://en.wikipedia.org/wiki/Single_responsibility_principle">Single Responsibility</a> principle? Why don’t you split it into 3 smaller methods: <code>displayErrorMessage(Exception e)</code>, <code>writeToLog(Exception e)</code> and <code>navigateToLoginScreen()</code>?</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Display an error message to the user, log the error
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * and navigate to the login screen
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * 
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @param exception The exception
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">handleError</span><span class="o">(</span><span class="n">Exception</span> <span class="n">exception</span><span class="o">){</span>
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>I agree, <a href="http://martinfowler.com/bliki/TwoHardThings.html">naming things is difficult</a>. Start by actually writing the best name you can think of. If <code>displayAndLogErrorThenGoToLogin()</code> doesn’t exactly roll off the tongue, ask yourself why. Ah, too many verbs, you say? Maybe it’s because the method does too many things? May I remind you of a little thing called the <a href="https://en.wikipedia.org/wiki/Single_responsibility_principle">Single Responsibility</a> principle? Why don’t you split it into 3 smaller methods: <code>displayErrorMessage(Exception e)</code>, <code>writeToLog(Exception e)</code> and <code>navigateToLoginScreen()</code>?</p>
 <blockquote>
 <p>I need to document this method with ambiguous arguments</p>
 </blockquote>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="cm">/**
-</span><span class="cm"> * Display a dialog at a certain position on the screen
-</span><span class="cm"> * 
-</span><span class="cm"> * @param type One of Dialog.ALERT, Dialog.ASK or Dialog.NEGATIVE
-</span><span class="cm"> * @param isBlocking True if the dialog should block the UI
-</span><span class="cm"> */</span>
-<span class="kd">public</span> <span class="kt">void</span> <span class="nf">showDialog</span><span class="o">(</span><span class="kt">int</span> <span class="n">x</span><span class="o">,</span> <span class="kt">int</span> <span class="n">y</span><span class="o">,</span> <span class="kt">int</span> <span class="n">type</span><span class="o">,</span> <span class="kt">boolean</span> <span class="n">isBlocking</span><span class="o">){</span>
-  <span class="o">...</span>
-<span class="o">}</span>
-</code></pre></div><p>Oh boy… Where do I begin?</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Display a dialog at a certain position on the screen
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * 
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @param type One of Dialog.ALERT, Dialog.ASK or Dialog.NEGATIVE
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @param isBlocking True if the dialog should block the UI
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">showDialog</span><span class="o">(</span><span class="kt">int</span> <span class="n">x</span><span class="o">,</span> <span class="kt">int</span> <span class="n">y</span><span class="o">,</span> <span class="kt">int</span> <span class="n">type</span><span class="o">,</span> <span class="kt">boolean</span> <span class="n">isBlocking</span><span class="o">){</span>
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>Oh boy… Where do I begin?</p>
 <p>Boolean arguments? 99% of the time, that’s a method begging to be split in two. How about <code>showBlockingDialog()</code> and <code>showNonBlockingDialog()</code>?</p>
 <p>You have to document the supported values for a parameter? What’s stopping someone from passing in <a href="https://www.google.ro/search?q=what%27s+the+answer+to+life+the+universe+and+everything">42</a>? Or <code>Integer.MIN_VALUE</code>? Create an enum to hold the possible values and restrict anyone from passing in a wrong value. Or consider using a factory to create different types of dialogs.</p>
 <blockquote>
 <p>But you see, I have this one weird trick I need to document…</p>
 </blockquote>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="o">...</span>
-<span class="n">Blob</span> <span class="n">blob</span> <span class="o">=</span> <span class="n">getLastUsedBlob</span><span class="o">();</span>
-<span class="c1">// the blobs are spread out in memory to make attacks difficult
-</span><span class="c1"></span><span class="kt">int</span> <span class="n">nextAddress</span> <span class="o">=</span> <span class="n">blob</span><span class="o">.</span><span class="na">getMemoryAddress</span><span class="o">()</span> <span class="o">&gt;&gt;</span> <span class="n">blob</span><span class="o">.</span><span class="na">getByteSize</span><span class="o">();</span>
-<span class="n">Blob</span> <span class="n">nextBlob</span> <span class="o">=</span> <span class="n">Blob</span><span class="o">.</span><span class="na">getFromAddress</span><span class="o">(</span><span class="n">nextAddress</span><span class="o">);</span>
-</code></pre></div><p>I agree, this is the kind of obscure knowledge that needs to be documented. Sometimes it helps to encapsulate this knowledge in a separate method or class. In this specific example, it would make sense to encapsulate it in the <code>Blob</code> class itself:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="cm">/**
-</span><span class="cm"> * Find the next blob
-</span><span class="cm"> */</span>
-<span class="kd">public</span> <span class="n">Blob</span> <span class="nf">getNextBlob</span><span class="o">(){</span>
-  <span class="c1">// the blobs are spread out in memory to make attacks difficult
-</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">nextAddress</span> <span class="o">=</span> <span class="n">getMemoryAddress</span><span class="o">()</span> <span class="o">&gt;&gt;</span> <span class="n">getByteSize</span><span class="o">();</span>
-  <span class="k">return</span> <span class="n">Blob</span><span class="o">.</span><span class="na">getFromAddress</span><span class="o">(</span><span class="n">nextAddress</span><span class="o">);</span>
-<span class="o">}</span>
-</code></pre></div><p>Now, not only you made life easier for anyone who works with blobs, you also made your code safer. No more accidental <code>&lt;&lt;</code> instead of <code>&gt;&gt;</code>. Yay!</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="n">Blob</span> <span class="n">blob</span> <span class="o">=</span> <span class="n">getLastUsedBlob</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// the blobs are spread out in memory to make attacks difficult
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">int</span> <span class="n">nextAddress</span> <span class="o">=</span> <span class="n">blob</span><span class="o">.</span><span class="na">getMemoryAddress</span><span class="o">()</span> <span class="o">&gt;&gt;</span> <span class="n">blob</span><span class="o">.</span><span class="na">getByteSize</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">Blob</span> <span class="n">nextBlob</span> <span class="o">=</span> <span class="n">Blob</span><span class="o">.</span><span class="na">getFromAddress</span><span class="o">(</span><span class="n">nextAddress</span><span class="o">);</span>
+</span></span></code></pre></div><p>I agree, this is the kind of obscure knowledge that needs to be documented. Sometimes it helps to encapsulate this knowledge in a separate method or class. In this specific example, it would make sense to encapsulate it in the <code>Blob</code> class itself:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Find the next blob
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="n">Blob</span> <span class="nf">getNextBlob</span><span class="o">(){</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">// the blobs are spread out in memory to make attacks difficult
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="kt">int</span> <span class="n">nextAddress</span> <span class="o">=</span> <span class="n">getMemoryAddress</span><span class="o">()</span> <span class="o">&gt;&gt;</span> <span class="n">getByteSize</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">  <span class="k">return</span> <span class="n">Blob</span><span class="o">.</span><span class="na">getFromAddress</span><span class="o">(</span><span class="n">nextAddress</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>Now, not only you made life easier for anyone who works with blobs, you also made your code safer. No more accidental <code>&lt;&lt;</code> instead of <code>&gt;&gt;</code>. Yay!</p>
 <hr>
 <p>Code can be such a beautiful thing. And, like most beautiful things, it takes hard work to create. Unfortunately, it’s easy to write bad code. And <a href="https://books.google.ro/books?id=5wBQEp6ruIAC&amp;lpg=PA29&amp;ots=n5npfteIqX&amp;dq=the%20pragmatic%20programmer%20bad%20code%20requires%20comments&amp;hl=ro&amp;pg=PA29#v=onepage&amp;q=the%20pragmatic%20programmer%20bad%20code%20requires%20comments&amp;f=false">bad code</a> <a href="https://books.google.ro/books?id=5wBQEp6ruIAC&amp;lpg=PA29&amp;ots=n5npfteIqX&amp;dq=the%20pragmatic%20programmer%20bad%20code%20requires%20comments&amp;hl=ro&amp;pg=PA29#v=onepage&amp;q=the%20pragmatic%20programmer%20bad%20code%20requires%20comments&amp;f=false"><em>requires</em></a> <a href="https://books.google.ro/books?id=5wBQEp6ruIAC&amp;lpg=PA29&amp;ots=n5npfteIqX&amp;dq=the%20pragmatic%20programmer%20bad%20code%20requires%20comments&amp;hl=ro&amp;pg=PA29#v=onepage&amp;q=the%20pragmatic%20programmer%20bad%20code%20requires%20comments&amp;f=false">comments</a>. But don’t delete the comments and call your code beautiful. Write it in a way that doesn’t need comments in the first place.</p>
 <p>So go forth and code (without comments)!</p>
