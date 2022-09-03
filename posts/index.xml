@@ -24,7 +24,7 @@ So, without further ado, I&amp;rsquo;m starting a series of posts documenting my
       
       <guid>/posts/unit-testing-why/</guid>
       <description>Photo by Steve Halama on Unsplash
-  A story I remember the first unit tests I have ever written. It happened on a long 6 hour train ride, with no internet and no USB cable to connect my phone to my laptop. I was developing an Android application and I had some great ideas I wanted to try, but no way to test the code I was writing. At the time, I didn’t know what an unit test was, but I had read something about unit testing, so I did what I could.</description>
+A story I remember the first unit tests I have ever written. It happened on a long 6 hour train ride, with no internet and no USB cable to connect my phone to my laptop. I was developing an Android application and I had some great ideas I wanted to try, but no way to test the code I was writing. At the time, I didn’t know what an unit test was, but I had read something about unit testing, so I did what I could.</description>
     </item>
     
     <item>
@@ -35,7 +35,7 @@ So, without further ado, I&amp;rsquo;m starting a series of posts documenting my
       <guid>/posts/rant-code-comments/</guid>
       <description>I hate code comments. I hate reading comments and I hate writing comments. It’s one of the first things I notice in a new project, and it’s usually a red flag about the code quality.
 I know people that swear by code comments. They feel helpless if the code is not commented extensively. And they usually have several arguments for why comments are needed.
- I have to explain what a method does.</description>
+I have to explain what a method does.</description>
     </item>
     
     <item>
@@ -55,7 +55,7 @@ You may ask “What’s your problem? Why should I reinvent the wheel?”. No, y
       
       <guid>/posts/testing-hidden-dependencies/</guid>
       <description>Let’s talk about The God Object, The Blob, that giant method with hundreds of lines that does a million things. You know it, it’s that class that powers the entire application and everyone in the team is afraid to change even a single line of code.
- Usually, that’s the class that “just works” because it has been polished with the tears of the poor developers who have fixed countless bugs during the long years of its existence.</description>
+Usually, that’s the class that “just works” because it has been polished with the tears of the poor developers who have fixed countless bugs during the long years of its existence.</description>
     </item>
     
     <item>
@@ -65,7 +65,7 @@ You may ask “What’s your problem? Why should I reinvent the wheel?”. No, y
       
       <guid>/posts/testing-legacy-code/</guid>
       <description>You know that guy that works on that messy codebase? The guy that always has a story about some weird bug he spent several days on? If you ask him what is the worst part about that code, his answer might be something like
- f you don’t know why that is bad consider yourself lucky. If you just chuckled bitterly, then you know what a plague they are when you need to put your code in a test harness.</description>
+f you don’t know why that is bad consider yourself lucky. If you just chuckled bitterly, then you know what a plague they are when you need to put your code in a test harness.</description>
     </item>
     
     <item>
